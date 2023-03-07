@@ -1816,14 +1816,15 @@ class stock_item_voucher(models.Model):
     #voucher details
     date = models.DateField(null = True)
     #voucher_id = models.IntegerField(null=True,blank=True)
-    party_account = models.CharField(max_length=255,null=True)
+    Particulars = models.CharField(max_length=255,null=True)   #party_account
     ledger_account = models.CharField(max_length=255,null=True)
+
     Voucher_type = models.CharField(max_length = 50)
     Voucher_no = models.IntegerField(null = True,blank=True)
     rate  = models.IntegerField(null = True,blank=True)
     per = models.IntegerField(null = True,blank=True)
+
     inwards_qty = models.IntegerField(null = True,blank=True)
-    
     inwards_val = models.IntegerField(null = True,blank=True)
     outwards_qty = models.IntegerField(null = True,blank=True)
     outwards_val = models.IntegerField(null = True,blank=True)
@@ -1838,6 +1839,7 @@ class stock_item_voucher(models.Model):
     date = models.DateField(null = True)
     Particulars = models.CharField(max_length=255,null=True)
     month = models.ForeignKey(fmonths,on_delete=models.CASCADE,null = True,blank=True)
+
     Voucher_type = models.CharField(max_length = 50)
     Voucher_no = models.IntegerField(null = True)
     rate  = models.IntegerField(null = True,blank=True)
@@ -1854,6 +1856,8 @@ class stock_item_voucher(models.Model):
 #saiju
 
 class credit_note(models.Model):
+    voucher = models.ForeignKey(Voucher,on_delete=models.CASCADE,null=True,blank=True)
+
     screditid = models.AutoField(('cnid'), primary_key=True)
     comp=models.ForeignKey(Companies,on_delete=models.CASCADE)
     credit_no = models.IntegerField(default=1)
@@ -1893,6 +1897,9 @@ class credit_item(models.Model):
     total = models.CharField(max_length=100,null=True)
 
 class debit_note(models.Model):
+
+    voucher = models.ForeignKey(Voucher,on_delete=models.CASCADE,null=True,blank=True)
+
     sdebitid = models.AutoField(('cnid'), primary_key=True)
     comp=models.ForeignKey(Companies,on_delete=models.CASCADE)
     debit_no = models.IntegerField(default=1)

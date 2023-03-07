@@ -831,7 +831,7 @@ urlpatterns = [
 
     # Debit Note
 
-    path('debits_note/',views.debits_note,name='debits_note'),
+   path('debits_note/',views.debits_note,name='debits_note'),
     path('create_debit/',views.create_debit,name='create_debit'),
     path('crt_ledg_dbt/',views.crt_ledg_dbt,name='crt_ledg_dbt'),
     path('create_ledger_debt/',views.create_ledger_debt,name='create_ledger_debt'),
@@ -856,8 +856,4 @@ urlpatterns = [
     path('create_voucher_dbt_fr/',views.create_voucher_dbt_fr,name='create_voucher_dbt_fr'),
     path('vouchers_crd_fr/',views.vouchers_crd_fr,name='vouchers_crd_fr'),
     path('create_voucher_crd_fr/',views.create_voucher_crd_fr,name='create_voucher_crd_fr'),
-
-
-
- 
 ]

@@ -176,7 +176,7 @@
                         <input type="hidden" value="" name="idlbl" id = 'idlbl'>
                         <label name = 'idlbl'></label>
                         {% elif vouch.voucherNumber == 'Automatic(Manual Override)' %}
-                        <input type="number" id = 'vouchNum' style="background-color: rgb(255, 229, 183);height: 20px;">
+                        <input type="number" id = 'idlbl' style="background-color: rgb(255, 229, 183);height: 20px;">
                         {% endif %}
 
                       </div>
@@ -798,7 +798,9 @@ function showTransaction(){
   
     const vouch_id = $('#idlbl').val();
     const vouchtype = $('#vouchtype').text();
-    
+    console.log(vouch_id);
+    console.log(vouchtype);
+    console.log($("#partid").val());
     
 
     if ($("#t_type").text() === 'Cheque'){
@@ -811,7 +813,7 @@ function showTransaction(){
                         
                         id : vouch_id, 
                         vouch_type : vouchtype,
-                        part : $("#partid").value(),
+                        part : $("#partid").val(),
                         bacc : $("#chacc").text(),
                         t_type : $("#t_type").text(),
                         instnum:$("#chnumber").val(),
@@ -844,7 +846,7 @@ function showTransaction(){
                     data:{
                         id : vouch_id,
                         vouch_type : vouchtype,
-                        part : $("#partid").value(),
+                        part : $("#partid").val(),
                         bacc : $("#efacc").text(),
                         t_type : $("#t_type").text(),
                         instnum:$("#efnum").val(),

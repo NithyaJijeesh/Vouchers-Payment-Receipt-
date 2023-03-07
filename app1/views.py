@@ -11865,7 +11865,7 @@ def bank_transcation(request):
     
     if request.method == 'POST':
         id = request.POST.get('id')
-        vouch_type = request.POST.get('vouch_type')
+        vouch_name = request.POST.get('vouch_type')
         partacc = request.POST.get('part')
         bacc = request.POST.get('bacc')
         t_type = request.POST.get('t_type')
@@ -11876,12 +11876,14 @@ def bank_transcation(request):
         bname = request.POST.get('efbank')
         amount = request.POST.get('amount')
 
-        
-        # print(partacc)
-        if vouch_type.strip() == 'Payment':
+        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip()).voucher_type
+        print(vouch_type)
+        print(id)
+        print(partacc)
+        if vouch_type == 'Payment':
             bank_transcations(pay_voucher = id, pay_particular = partacc , bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-        else:
+        elif vouch_type == 'Receipt':
 
             bank_transcations(rec_voucher = id, rec_particular = partacc, bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
@@ -12203,7 +12205,7 @@ def credit_notess(request):
     except:
         setup_no=" "
         setup_nar=" "
-    #change
+    #Nithya change
     name = request.POST.get('ptype')
 
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
@@ -12406,7 +12408,7 @@ def create_credit(request):
             
             idss = credit_note.objects.all().last()
 
-            #change
+            #Nithya change
             
             name = request.POST.get('type')
             # print(name)
@@ -12414,13 +12416,13 @@ def create_credit(request):
             
             created = credit_note.objects.filter(screditid=idss.screditid).update(voucher = vouch,customer = request.POST['customer'],creditdate=date.today(),ledger_acc=request.POST['ledger_account'],subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
-
+    
             pdebit=credit_note.objects.get(screditid=idss.screditid)
 
             
             pdebit.credit_no = pdebit.screditid
             pdebit.save()
-
+   
             ldg1=tally_ledger.objects.get(company=cmp1,name=pdebit.customer)
             cr_bal=float(ldg1.opening_blnc)+float(pdebit.grandtotal)
             dr_bal=float(pdebit.grandtotal)-float(ldg1.opening_blnc)
@@ -12434,9 +12436,11 @@ def create_credit(request):
                     ldg1.opening_blnc_type="Dr"
                 else:
                     ldg1.opening_blnc_type="Cr"
-           
+             
+                
+
             ldg1.save()
-           
+            
             ldg=tally_ledger.objects.get(company=cmp1,name=pdebit.ledger_acc)
             ldg.opening_blnc=float(ldg.opening_blnc)+float(pdebit.grandtotal)
             ldg.save()
@@ -12447,16 +12451,15 @@ def create_credit(request):
             total = request.POST.getlist("total[]")
 
             pdeb=credit_note.objects.get(screditid=pdebit.screditid)
-            
 
             if len(items)==len(quantity)==len(price)==len(total) and items and quantity and price and total:
                
                 mapped=zip(items,quantity,price,total)
                 mapped=list(mapped)
-                # print(mapped)
+                print(mapped)
                 for ele in mapped:
-                    porderAdd,created = credit_item.objects.get_or_create(items = ele[0],quantity=ele[1],price=ele[2],total=ele[3],scredit=pdeb).save()
-
+                    porderAdd,created = credit_item.objects.get_or_create(items = ele[0],quantity=ele[1],price=ele[2],total=ele[3],scredit=pdeb)
+                    print(ele)
                     # itemqty = stock_itemcreation.objects.get(name=ele[0])
                     # if itemqty.quantity != 0:
                     #     temp=0
@@ -13012,7 +13015,6 @@ def stock_godowncrd(request):
     return redirect('/')
 
 # debit Note--------------------------------------------------------------------------------
-
 def debits_note(request):
     
     try:
@@ -13051,6 +13053,9 @@ def debits_note(request):
     except:
         setup_no=" "
         setup_nar=" "
+
+    #Nithya change
+    name = request.POST.get('ptype')
    
     
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
@@ -13058,9 +13063,25 @@ def debits_note(request):
     ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
     item = stock_itemcreation.objects.all() 
     godown = Godown_Items.objects.filter(comp=cmp1) 
-    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now} 
+    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':name} 
     return render(request,'debit_note.html',context)
 
+
+
+
+
+
+def crt_ledg_dbt(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        tally = Companies.objects.filter(id=t_id)
+        # grp=tally_group.objects.all()
+        grp=tally_group.objects.filter(company=t_id)
+        return render(request,'ledger_debit.html',{'grp' : grp,'tally':tally})
+    return redirect('debits_note')
 
 
 def create_debit(request):
@@ -13082,8 +13103,14 @@ def create_debit(request):
 
             
             idss = debit_note.objects.all().last()
+
+            #Nithya change
+            
+            name = request.POST.get('type')
+            # print(name)
+            vouch = Voucher.objects.filter(voucher_type = 'Debit_Note').get(voucher_name = name)
          
-            created = debit_note.objects.filter(sdebitid=idss.sdebitid).update(customer = request.POST['customer'],debitdate=date.today(),ledger_acc=request.POST['ledger_account'],subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
+            created = debit_note.objects.filter(sdebitid=idss.sdebitid).update(voucher = vouch,customer = request.POST['customer'],debitdate=date.today(),ledger_acc=request.POST['ledger_account'],subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
 
             pdebit=debit_note.objects.get(sdebitid=idss.sdebitid)
@@ -13094,17 +13121,28 @@ def create_debit(request):
 
             ldg1=tally_ledger.objects.get(company=cmp1,name=pdebit.customer)
             cr_bal=float(ldg1.opening_blnc)+float(pdebit.grandtotal)
-            dr_bal=float(pdebit.grandtotal)-float(ldg1.opening_blnc)
-            if ldg1.opening_blnc_type=="Cr":
-                ldg1.opening_blnc=cr_bal
-                
-            else:
-                ldg1.opening_blnc=dr_bal
+            bal_amount=float(pdebit.grandtotal)-float(ldg1.opening_blnc)
+
+            dr_bal =float(format(bal_amount).lstrip("-"))
+              
+            if float(pdebit.grandtotal)>float(ldg1.opening_blnc):
                
-                if float(pdebit.grandtotal)>float(dr_bal):
-                    ldg1.opening_blnc_type="Dr"
-                else:
+                if ldg1.opening_blnc_type=="Dr":
+                 
                     ldg1.opening_blnc_type="Cr"
+                    ldg1.opening_blnc=dr_bal
+                else:
+                   
+                    ldg1.opening_blnc_type="Dr"
+                    
+                    ldg1.opening_blnc=dr_bal
+            else:
+
+                if ldg1.opening_blnc_type=="Dr":
+                    ldg1.opening_blnc=dr_bal
+                else:
+              
+                    ldg1.opening_blnc=dr_bal
              
                 
 
@@ -13128,7 +13166,7 @@ def create_debit(request):
                
                 mapped=zip(items,quantity,price,total)
                 mapped=list(mapped)
-                # print(mapped)
+                print(mapped)
                 for ele in mapped:
                     porderAdd,created = debit_item.objects.get_or_create(items = ele[0],quantity=ele[1],price=ele[2],total=ele[3],sdebit=pdeb)
 
@@ -13138,20 +13176,10 @@ def create_debit(request):
         
         return redirect('debits_note')
     return redirect('/') 
-
-
-def crt_ledg_dbt(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-        tally = Companies.objects.filter(id=t_id)
-        # grp=tally_group.objects.all()
-        grp=tally_group.objects.filter(company=t_id)
-        return render(request,'ledger_debit.html',{'grp' : grp,'tally':tally})
-    return redirect('debits_note')
    
+
+
+
 
 
 def create_ledger_debt(request):
@@ -13359,6 +13387,7 @@ def savrecdet_dbt(request):
         opn_bal = items.opening_blnc
         blnc_type = items.opening_blnc_type
         bal_amount=str(opn_bal)+str(blnc_type)
+        bal_amount=str(format(opn_bal).lstrip("-"))+str(blnc_type)
         
         
         
@@ -13739,9 +13768,11 @@ def list_deb_voucher(request):
         else:
             return redirect('/')
 
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+
         
 
-        voucher = Voucher.objects.filter(voucher_type = 'Debit_Note')
+        voucher = Voucher.objects.filter(company=cmp1,voucher_type = 'Debit_Note')
         context = {
                     'voucher': voucher,
 
@@ -13754,17 +13785,14 @@ def list_crd_voucher(request):
             t_id = request.session['t_id']
         else:
             return redirect('/')
-
-        voucher = Voucher.objects.filter(voucher_type = 'Credit_Note')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        voucher = Voucher.objects.filter(company=cmp1,voucher_type = 'Credit_Note')
         context = {
                     'voucher': voucher,
 
                 }
         return render(request,'list_crd_type.html',context)
 
-
-
-# new 
 
 
 def vouchers_dbt_fr(request):
@@ -13842,7 +13870,7 @@ def create_voucher_dbt_fr(request):
                         name_class = nc,
                         company_id=t_id)          
             vhr.save()
-            # print("Added")
+            print("Added")
             return redirect('list_deb_voucher')
         return render(request,'vouchers.html',{'tally':tally})
     return redirect('/')
@@ -13925,15 +13953,7 @@ def create_voucher_crd_fr(request):
                         name_class = nc,
                         company_id=t_id)          
             vhr.save()
-            #print("Added")
+            print("Added")
             return redirect('list_crd_voucher')
         return render(request,'vouchers.html',{'tally':tally})
     return redirect('/')
-
-
-
-
-
-
-    
-    
