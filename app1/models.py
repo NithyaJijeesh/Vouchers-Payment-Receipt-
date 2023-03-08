@@ -1812,10 +1812,11 @@ class stock_item_voucher(models.Model):
     group = models.ForeignKey(CreateStockGrp,on_delete = models.CASCADE,null = True)
     item = models.ForeignKey(stock_itemcreation,on_delete = models.CASCADE,null = True)
     month = models.ForeignKey(fmonths,on_delete=models.CASCADE,null = True,blank=True)
-
+    
     #voucher details
     date = models.DateField(null = True)
-    #voucher_id = models.IntegerField(null=True,blank=True)
+    voucher_id = models.IntegerField(null=True,blank=True)
+    voucher_item_id = models.IntegerField(null=True,blank=True)
     Particulars = models.CharField(max_length=255,null=True)   #party_account
     ledger_account = models.CharField(max_length=255,null=True)
 

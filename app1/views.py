@@ -11877,9 +11877,9 @@ def bank_transcation(request):
         amount = request.POST.get('amount')
 
         vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip()).voucher_type
-        print(vouch_type)
-        print(id)
-        print(partacc)
+        # print(vouch_type)
+        # print(id)
+        # print(partacc)
         if vouch_type == 'Payment':
             bank_transcations(pay_voucher = id, pay_particular = partacc , bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
@@ -11887,6 +11887,14 @@ def bank_transcation(request):
 
             bank_transcations(rec_voucher = id, rec_particular = partacc, bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+
+        # b = bank_transcations.objects.exclude(rec_voucher__isnull = True)
+        
+        # for j in list(b):
+        #     r = receipt_voucher.objects.get(rid = j.rec_voucher)
+        #     # r = list(r).u
+        #     vt = Voucher.objects.get(id = r.voucher_id).voucher_name
+        #     print(vt)
 
         return HttpResponse({"message": "success"})
     
@@ -11968,23 +11976,23 @@ def stock_item_monthly_summary(request,pk):
                 return redirect('/')
 
         comp = Companies.objects.get(id=t_id)
-        
-        #credit note---
-        vouch_type = Voucher.objects.filter(voucher_type = 'Credit_note')
-        
-        for i in vouch_type:
-            credit = credit_note.objects.filter(voucher_id = i.id)
-            for c in credit:
-                cr = credit.get(screditid = c.screditid)
-        # print(cr)
-            
-            
-
-
+   
         months = fmonths.objects.values()
         item = stock_itemcreation.objects.get(id=pk)
         vouch = stock_item_voucher.objects.filter(item_id = item.id)
-        
+
+        invouch = Voucher.objects.filter(voucher_type__in = ['Debit_Note','Purchase']).values('voucher_name')
+        outvouch = Voucher.objects.filter(voucher_type__in = ['Credit_Note','Sales']).values('voucher_name')
+
+        invouch_type = []
+        outvouch_type = []
+        for i in invouch:
+            invouch_type.append(i['voucher_name'])
+
+        for i in outvouch:
+            outvouch_type.append(i['voucher_name'])
+        # print(outvouch_type)
+
         beg_date = comp.fin_begin
 
         if vouch.exists():
@@ -12004,24 +12012,23 @@ def stock_item_monthly_summary(request,pk):
             if vouch.exists():
 
                 for v in vouch:
-                    # print(v.month_id)
                     if v.month_id == mnth['id']:
                         
                         in_qty = 0 if v.inwards_qty is None else v.inwards_qty
                         in_val = 0 if v.inwards_val is None else v.inwards_val
                         out_qty = 0 if v.outwards_qty is None else v.outwards_qty
                         out_val = 0 if v.outwards_val is None else v.outwards_val
-                        # print(in_val)
-                        # print(out_qty)
-
+                        
                         total_inqty += in_qty
                         total_inval += in_val
                         total_outqty += out_qty
                         total_outval += out_val
+                        # print(total_outqty)
+                        if v.Voucher_type in  invouch_type :
 
-                        if v.Voucher_type == 'Purchase':
                             mnth['total_inqty'] = total_inqty
                             mnth['total_inval'] = total_inval
+
                         else:
                             mnth['total_outqty'] = total_outqty
                             mnth['total_outval'] = total_outval
@@ -12056,8 +12063,6 @@ def stock_item_monthly_summary(request,pk):
                     'sum_out_val' : sum_out_val,
                     'beg_date' : beg_date,
                     'new_date' : new_date,
-                    'cr' : credit,
-                    'vouch_type':vouch_type,
                     
                 }
 
@@ -12076,36 +12081,23 @@ def stock_item_vouchers(request,pk,id):
         item = stock_itemcreation.objects.get(id = pk)
         mnth = fmonths.objects.get(id = id)
 
-        
         voucher = stock_item_voucher.objects.filter(item_id = item.id)
 
-        #credit note---
-        vouch_type = Voucher.objects.all()
-
-        #for i in vouch_type:
-
-        credit = credit_note.objects.filter(voucher_type = 'Credit_Note')
-        if credit:
-            cr = credit.get(screditid = 12)
-        # print(cr)
-
         for v in voucher:
-            # if v.Voucher_type == 'Purchase':
-            #     inwards_value = v.inwards_qty * v.rate * v.per
-            #     v.inwards_val = inwards_value 
-            # else:
-            #     outwards_value = v.outwards_qty * v.rate * v.per
-            #     v.outwards_val = outwards_value
-
+        
             v_month = v.date.strftime('%B')
             m_id = fmonths.objects.get(month_name = v_month)
 
             v.month = m_id
             v.save()
 
-            
+        # vt = stock_item_voucher.objects.filter(item_id = item.id).values()
+        # for v in vt:
+        #     vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
+        #     v['vouch_type'] = vouch_type
+        # # print(v['vouch_type'])
 
-        vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id)
+        vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id).values()
         qty = sum_in_qty = int(item.quantity)
         val = sum_in_val = int(item.value)
 
@@ -12113,40 +12105,43 @@ def stock_item_vouchers(request,pk,id):
 
         for v in vouch:    
 
-            in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-            in_val = 0 if v.inwards_val is None else v.inwards_val
-            out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-            out_val = 0 if v.outwards_val is None else v.outwards_val
+            in_qty = 0 if v['inwards_qty'] is None else v['inwards_qty']
+            in_val = 0 if v['inwards_val'] is None else v['inwards_val']
+            out_qty = 0 if v['outwards_qty'] is None else v['outwards_qty']
+            out_val = 0 if v['outwards_val'] is None else v['outwards_val']
 
             qty += in_qty-out_qty
             val += in_val-out_val
 
-            v.closing_qty = qty
-            v.closing_val = val
-            v.save()
+            v['closing_qty'] = qty
+            v['closing_val'] = val
+            # v.save()
 
             sum_in_qty += in_qty
             sum_in_val += in_val
             sum_out_qty += out_qty
             sum_out_val += out_val
             
+
+            vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
+            v['vouch_type'] = vouch_type
+
+        print(vouch)
         m =  int(datetime.strptime(mnth.month_name, '%B').month)
-        y = int(v.date.strftime('%Y'))
+        y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
         beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
 
         if mnth.month_name != 'December':
             m2 =  int(datetime.strptime(mnth.month_name, '%B').month)+1
         else:
             m2 = 10
-            y = int(v.date.strftime('%Y'))
+            y = int(datetime.strftime(v['date'],'%Y'))     #int(v.date.strftime('%Y'))
         end_date = (datetime(y,m2,1) - timedelta(days=1)).date().strftime('%d-%b-%y')
-
 
         context = {
                     'company' : comp,
                     'item' : item,
                     'voucher' : vouch,
-                    'voucher_type' : vouch_type,
                     'mnth' : mnth,
                     'sum_in_qty' : sum_in_qty,
                     'sum_in_val' : sum_in_val,
@@ -12159,6 +12154,19 @@ def stock_item_vouchers(request,pk,id):
                   }
     
         return render(request,'stock_item_vouchers.html',context)
+
+def alter_credit_voucher(request,pk):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        context = {
+            'company' : cmp1,
+        }
+    return render(request,'alter_credit_note.html',context )
+
 
 # -----stock summary
 
@@ -12205,15 +12213,15 @@ def credit_notess(request):
     except:
         setup_no=" "
         setup_nar=" "
-    #Nithya change
-    name = request.POST.get('ptype')
+    # #Nithya change
+    # name = request.POST.get('ptype')
 
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
     
     ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
     item = stock_itemcreation.objects.all() 
     godown = Godown_Items.objects.filter(comp=cmp1) 
-    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':name} 
+    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':type} 
     return render(request,'credit_note.html',context)
 
 def itemdata(request):
@@ -12411,10 +12419,12 @@ def create_credit(request):
             #Nithya change
             
             name = request.POST.get('type')
+            cust = request.POST['customer']
+            ledg = request.POST['ledger_account']
             # print(name)
             vouch = Voucher.objects.filter(voucher_type = 'Credit_Note').get(voucher_name = name)
             
-            created = credit_note.objects.filter(screditid=idss.screditid).update(voucher = vouch,customer = request.POST['customer'],creditdate=date.today(),ledger_acc=request.POST['ledger_account'],subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
+            created = credit_note.objects.filter(screditid=idss.screditid).update(voucher = vouch,customer = cust,creditdate=date.today(),ledger_acc=ledg,subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
     
             pdebit=credit_note.objects.get(screditid=idss.screditid)
@@ -12456,20 +12466,22 @@ def create_credit(request):
                
                 mapped=zip(items,quantity,price,total)
                 mapped=list(mapped)
-                print(mapped)
+                # print(mapped)
                 for ele in mapped:
                     porderAdd,created = credit_item.objects.get_or_create(items = ele[0],quantity=ele[1],price=ele[2],total=ele[3],scredit=pdeb)
-                    print(ele)
-                    # itemqty = stock_itemcreation.objects.get(name=ele[0])
-                    # if itemqty.quantity != 0:
-                    #     temp=0
-                    #     print(ele[1])
-                    #     temp = itemqty.quantity 
-
-                    #     temp = int(temp)+int(ele[1])
-                    #     itemqty.quantity =temp
-                    #     itemqty.save()
-    
+                   
+                    # Nithya---stock item voucher change--
+                    item = stock_itemcreation.objects.get(name= ele[0])
+                    grp = CreateStockGrp.objects.get(id = item.under_id)
+                    cred_item = credit_item.objects.last().id
+                    
+                    outwards_value =int(ele[1]) * int(ele[2]) * int(item.per)
+                    outwards_val = outwards_value 
+                    stock_item_voucher.objects.get_or_create(company = cmp1,group = grp,item = item,date = date.today(),
+                                                             Particulars = cust,ledger_account = ledg,Voucher_type = name,
+                                                             Voucher_no=idss.screditid,rate = ele[2],per = item.per,
+                                                             outwards_qty = ele[1],outwards_val = outwards_val,
+                                                             voucher_id = pdeb.screditid,voucher_item_id = cred_item)
             return redirect('credit_notess')
         
         return redirect('credit_notess')
@@ -13107,10 +13119,12 @@ def create_debit(request):
             #Nithya change
             
             name = request.POST.get('type')
+            cust = request.POST['customer']
+            ledg = request.POST['ledger_account']
             # print(name)
             vouch = Voucher.objects.filter(voucher_type = 'Debit_Note').get(voucher_name = name)
          
-            created = debit_note.objects.filter(sdebitid=idss.sdebitid).update(voucher = vouch,customer = request.POST['customer'],debitdate=date.today(),ledger_acc=request.POST['ledger_account'],subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
+            created = debit_note.objects.filter(sdebitid=idss.sdebitid).update(voucher = vouch,customer = cust,debitdate=date.today(),ledger_acc=ledg,subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
 
             pdebit=debit_note.objects.get(sdebitid=idss.sdebitid)
@@ -13170,7 +13184,18 @@ def create_debit(request):
                 for ele in mapped:
                     porderAdd,created = debit_item.objects.get_or_create(items = ele[0],quantity=ele[1],price=ele[2],total=ele[3],sdebit=pdeb)
 
+                    # Nithya---stock item voucher change--
+                    item = stock_itemcreation.objects.get(name= ele[0])
+                    grp = CreateStockGrp.objects.get(id = item.under_id)
+                    cred_item = credit_item.objects.last().id
                     
+                    inwards_value =int(ele[1]) * int(ele[2]) * int(item.per)
+                    inwards_val = inwards_value 
+                    stock_item_voucher.objects.get_or_create(company = cmp1,group = grp,item = item,date = date.today(),
+                                                             Particulars = cust,ledger_account = ledg,Voucher_type = name,
+                                                             Voucher_no=idss.sdebitid,rate = ele[2],per = item.per,
+                                                             inwards_qty = ele[1],inwards_val = inwards_val,
+                                                             voucher_id = pdeb.sdebitid,voucher_item_id = cred_item) 
     
             return redirect('debits_note')
         

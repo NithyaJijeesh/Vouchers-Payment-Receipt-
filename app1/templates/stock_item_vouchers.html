@@ -12,6 +12,7 @@
                             <span class="pull-right clickable" data-effect="fadeOut"><i class="fa fa-times" style="color: black;"></i></span></a>
                         </div> 
             </div>
+            
             <div class="table-responsive">
                 <table class="table" style="background-color: rgba(33,57,77,255);color:#fff;">
                     <tr>
@@ -49,12 +50,13 @@
                     
                     
                     </tr>
-                    {{voucher_type}}
+                   
                     {% for v in voucher %}
-                    
+
+                    {% if v.vouch_type == 'Credit_Note' %}
                     <tr>
                     <td class="text-left">{{beg_date}}</td>
-                    <td colspan="3" class=" text-left ">{{v.Particulars}}</td>
+                    <td colspan="3" class=" text-left "><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.Particulars}}</a></td>
                     <td colspan="3" class="text-right">{{v.Voucher_type}}</td>
                     <td colspan="2" class="text-right">{{v.Voucher_no}}</td>
                         
@@ -77,33 +79,62 @@
                     <th class="border-left text-center">{{v.closing_qty}} {{item.units}}</th>
                     <th class="text-center">{{v.closing_val}}</th> 
                     </tr>
-                    {% endfor %}
 
+                    {% else %}
                     <tr>
-                    <td colspan="9" class="text-center">Totals as per 'Default' Valuation :</td>
-                    {% if sum_in_val != 0 %}
-                    <td class="border-left text-center">{{sum_in_qty}} {{item.units}}</td>
-                    <td class="text-center">{{sum_in_val}}</td>
-                    {% else %}
-                    <td class="border-left text-center"></td>
-                    <td class="text-center"></td>
-                    {% endif %}
+                        <td class="text-left">{{beg_date}}</td>
+                        <td colspan="3" class=" text-left "><a href = ''>{{v.Particulars}}</a></td>
+                        <td colspan="3" class="text-right">{{v.Voucher_type}}</td>
+                        <td colspan="2" class="text-right">{{v.Voucher_no}}</td>
+                            
+                        {% if v.inwards_qty is not None %}
+                        <th class="border-left text-center">{{v.inwards_qty}} {{item.units}}</th>
+                        <th class="text-center">{{v.inwards_val}}</th>
+                        {% else %}
+                        <th class="border-left"></th>
+                        <th></th>
+                        {% endif %}
+                            
+                        {% if v.outwards_qty is not None %}
+                        <th class="border-left text-center">{{v.outwards_qty}} {{item.units}}</th>
+                        <th class="text-center">{{v.outwards_val}}</th>
+                        {% else %}
+                        <th class="border-left"></th>
+                        <th></th>
+                        {% endif %}
+                        
+                        <th class="border-left text-center">{{v.closing_qty}} {{item.units}}</th>
+                        <th class="text-center">{{v.closing_val}}</th> 
+                        </tr>
 
-                    {% if sum_out_val != 0  %}
-                    <td class="border-left text-center">{{sum_out_qty}} {{item.units}}</td>
-                    <td class="text-center">{{sum_out_val}}</td>
-                    {% else %}
-                    <td class="border-left text-center"></td>
-                    <td class="text-center"></td>
-                    {% endif %}
-
-                    {% if sum_closing_val != 0 %}
-                    <td class="border-left text-center">{{sum_closing_qty}} {{item.units}}</td>
-                    <td class="text-center"> {{sum_closing_val}}</td>
-                    {% else %}
-                    <td class="border-left text-center"></td>
-                    <td class="text-center"></td>
-                    {% endif %}
+                    {% endif%}
+                    {% endfor %}
+                    
+                    <tr>
+                        <td colspan="9" class="text-center">Totals as per 'Default' Valuation :</td>
+                        {% if sum_in_val != 0 %}
+                        <td class="border-left text-center">{{sum_in_qty}} {{item.units}}</td>
+                        <td class="text-center">{{sum_in_val}}</td>
+                        {% else %}
+                        <td class="border-left text-center"></td>
+                        <td class="text-center"></td>
+                        {% endif %}
+    
+                        {% if sum_out_val != 0  %}
+                        <td class="border-left text-center">{{sum_out_qty}} {{item.units}}</td>
+                        <td class="text-center">{{sum_out_val}}</td>
+                        {% else %}
+                        <td class="border-left text-center"></td>
+                        <td class="text-center"></td>
+                        {% endif %}
+    
+                        {% if sum_closing_val != 0 %}
+                        <td class="border-left text-center">{{sum_closing_qty}} {{item.units}}</td>
+                        <td class="text-center"> {{sum_closing_val}}</td>
+                        {% else %}
+                        <td class="border-left text-center"></td>
+                        <td class="text-center"></td>
+                        {% endif %}
 
                     </tr>
 
