@@ -80,10 +80,10 @@
                     <th class="text-center">{{v.closing_val}}</th> 
                     </tr>
 
-                    {% else %}
+                    {% elif  v.vouch_type == 'Debit_Note' %}
                     <tr>
                         <td class="text-left">{{beg_date}}</td>
-                        <td colspan="3" class=" text-left "><a href = ''>{{v.Particulars}}</a></td>
+                        <td colspan="3" class=" text-left "><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.Particulars}}</a></td>
                         <td colspan="3" class="text-right">{{v.Voucher_type}}</td>
                         <td colspan="2" class="text-right">{{v.Voucher_no}}</td>
                             

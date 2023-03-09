@@ -11876,26 +11876,19 @@ def bank_transcation(request):
         bname = request.POST.get('efbank')
         amount = request.POST.get('amount')
 
-        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip()).voucher_type
-        # print(vouch_type)
-        # print(id)
-        # print(partacc)
-        if vouch_type == 'Payment':
-            bank_transcations(pay_voucher = id, pay_particular = partacc , bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
-                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-        elif vouch_type == 'Receipt':
+        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
 
-            bank_transcations(rec_voucher = id, rec_particular = partacc, bank_account = bacc ,transcation_type = t_type,instno = instno,instdate = instdate,
+        if vouch_type.voucher_type == 'Payment':
+            bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
+                                transcation_type = t_type,instno = instno,instdate = instdate,
+                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+        elif vouch_type.voucher_type == 'Receipt':
+
+            bank_transcations(voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
+                                transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
 
-        # b = bank_transcations.objects.exclude(rec_voucher__isnull = True)
         
-        # for j in list(b):
-        #     r = receipt_voucher.objects.get(rid = j.rec_voucher)
-        #     # r = list(r).u
-        #     vt = Voucher.objects.get(id = r.voucher_id).voucher_name
-        #     print(vt)
-
         return HttpResponse({"message": "success"})
     
 
@@ -12161,11 +12154,76 @@ def alter_credit_voucher(request,pk):
             uid = request.session['t_id']
         else:
             return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+
+        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+
+        ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
+        item = stock_itemcreation.objects.all() 
+        godown = Godown_Items.objects.filter(comp=cmp1) 
+
+        # vouch = Voucher.objects.filter(voucher_type = 'Payment').get(voucher_name = name)
+
+
+        cred_voucher = credit_note.objects.get(screditid = pk)
+        cred_item = credit_item.objects.filter(scredit_id = pk)
+
+        vouch = Voucher.objects.get(id = cred_voucher.voucher_id)
+        # print(cred_voucher)
         context = {
             'company' : cmp1,
+            'item':item,
+            'ldg':ldg,
+            "ldg1":ldg1,
+            "godown":godown,
+            'cred_voucher' : cred_voucher,
+            'cred_item' :cred_item,
+            'vouch' : vouch,
         }
     return render(request,'alter_credit_note.html',context )
+
+
+def alter_debit_voucher(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        deb_voucher = debit_note.objects.get(sdebitid = pk)
+        deb_item = debit_item.objects.filter(sdebit_id = pk)
+        
+        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+    
+        ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
+        item = stock_itemcreation.objects.all() 
+        godown = Godown_Items.objects.filter(comp=cmp1) 
+        
+        vouch = Voucher.objects.get(id = deb_voucher.voucher_id)
+
+        context = {
+            'item':item,
+            'ldg':ldg,
+            "ldg1":ldg1,
+            "godown":godown,
+            'vouch' : vouch,
+            'company' : cmp1,
+            'deb_voucher' : deb_voucher,
+            'deb_item' :deb_item,
+        }
+    return render(request,'alter_debit_note.html',context )
+
+
+def credacc_balance(request):
+
+    name = request.GET.get('ac')
+    print(name)
+    ledger = tally_ledger.objects.values().filter(name = name)
+    print(ledger)
+    data = list(ledger)
+    return JsonResponse(data, safe = False)
+
 
 
 # -----stock summary
@@ -12213,15 +12271,16 @@ def credit_notess(request):
     except:
         setup_no=" "
         setup_nar=" "
-    # #Nithya change
-    # name = request.POST.get('ptype')
+
+    #Nithya change
+    name = request.POST.get('ptype')
 
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
     
     ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
     item = stock_itemcreation.objects.all() 
     godown = Godown_Items.objects.filter(comp=cmp1) 
-    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':type} 
+    context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':name} 
     return render(request,'credit_note.html',context)
 
 def itemdata(request):
@@ -12806,7 +12865,7 @@ def get_sl_det(request):
      
         opening_blnc = items.opening_blnc
         opening_blnc_type = items.opening_blnc_type
-        bal_amount=str(opening_blnc)+str(opening_blnc_type)
+        bal_amount=str(opening_blnc)+ ' ' +str(opening_blnc_type)
         
         
         

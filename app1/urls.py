@@ -799,9 +799,8 @@ urlpatterns = [
     path('stock_item_monthly_summary/<pk>',views.stock_item_monthly_summary,name='stock_item_monthly_summary'),
     path('stock_item_vouchers/<pk>/<id>',views.stock_item_vouchers,name='stock_item_vouchers'),
     path('alter_credit_voucher/<pk>',views.alter_credit_voucher,name = 'alter_credit_voucher'),
-
-
-
+    path('alter_debit_voucher/<pk>',views.alter_debit_voucher,name = 'alter_debit_voucher'),
+    path('credacc_balance' , views.credacc_balance,name='credacc_balance'),       
 
 #saiju
 

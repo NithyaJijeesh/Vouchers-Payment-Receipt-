@@ -24,7 +24,7 @@
         <div class="content-wrapper">
             <div class="row d-flex " style="background-color: rgb(103, 175, 220);color:rgb(0, 0, 0);width:100%;margin: auto;">
                 <div class="col-sm-4"> Accounting Voucher Alteration (Secondary)</div>
-                <div class="col-sm-4" style="text-align: center;">{{company.name}}</div>
+                <div class="col-sm-4" style="text-align: center; text-transform: capitalize;">{{company.name}}</div>
             </div>
             <form style="margin-top: 30px;" method="post" action ="">
                 {% csrf_token %}
@@ -36,14 +36,15 @@
                             <!--Nithya change-->
                             <!-- <input type="hidden" name = 'type' value="{{name}}"> -->
                             
-                                <h6><span>Credit Note No. : <input type="text" name="crd_no" value="" disabled></span></h6>
-                            
+                            <h6><span>Credit Note No. : 
+                                <input type="text" name="crd_no" value="{{cred_voucher.screditid}}" disabled></span></h6>
+                        
                             
                             
                         </div>
                         <div class="col-sm-6" style="text-align: right;">
-                            <h6>{{financial_year}}</h6>
-                            <h6>{{dt_nm}}</h6>
+                            <h6>{{cred_voucher.creditdate | date:'d-M-y' }}</h6>
+                            <h6>{{cred_voucher.creditdate | date:'l' }}</h6>
                         </div>
                     </div>
                     <div class="row">
@@ -58,10 +59,14 @@
 
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="" data-dismiss="modal" data-target="#crtt" data-toggle="modal"><input type="text" class="input" name="customer" id = "customer"></a><br><br>
-                                    <input type="text" class="input" name="cust_bal" id="cust_bal"><br><br>
-                                    <a href="" data-dismiss="modal" data-target="#sl_acc" data-toggle="modal"><input type="text" class="input" name="ledger_account"  id="ledger_account" ></a><br><br>
-                                    <input type="text" class="input" name="ld_bal" id="ld_bal"   ><br><br>
+                                    <a href="" data-dismiss="modal" data-target="#crtt" data-toggle="modal">
+                                        <input type="text" class="input" name="customer" id = "customer"
+                                        value="{{cred_voucher.customer}}"></a><br><br>
+                                    <input type="text" class="input" name="cust_bal" id="cust_bal" onclick="setValue()"><br><br>
+                                    <a href="" data-dismiss="modal" data-target="#sl_acc" data-toggle="modal">
+                                        <input type="text" class="input" name="ledger_account"  id="ledger_account"
+                                        value = '{{cred_voucher.ledger_acc}}'></a><br><br>
+                                    <input type="text" class="input" name="ld_bal" id="ld_bal"  onclick="setValue()" ><br><br>
                      
                                 </div>
                             </div>
@@ -96,11 +101,13 @@
                                     </tr>
                                     </thead>
                                     <tbody id="items-table-body">
+                                        {% for i in cred_item %}
                                         <tr id='addr0'>
                                             <td>1</td>
                                             <td style="width: 20%;">
                                                 <div class="d-flex">
-                                                    <a href="" data-dismiss="modal" data-target="#item_sl" data-toggle="modal" onclick="rowid('product')"><input type="text" name='items[]' id="product"  class="form-control" placeholder="Item"></a>
+                                                    <a href="" data-dismiss="modal" data-target="#item_sl" data-toggle="modal" onclick="rowid('product')">
+                                                        <input type="text" value = "{{ i.items }}" name='items[]' id="product"  class="form-control" placeholder="Item"></a>
                                                     
                                                     
                                                 </div>
@@ -108,20 +115,21 @@
                                             
                                             <td>
                                                 
-                                                <input type="number" name='quantity[]' onchange="qtychange1(this)" placeholder='Enter Qty' id="qty1" class="form-control qty" step=0 min=0>
+                                                <input type="number" name='quantity[]' onchange="qtychange1(this)" placeholder='Enter Qty' id="qty1" 
+                                                value = "{{ i.quantity }}" class="form-control qty" step=0 min=0>
                                                     
                                                 
 
                                             </td>
                                             <td>
                                                 <input type="text" name='price[]' id="unit1" placeholder='Enter Unit Price'
-                                                class="form-control price" step="0.00" min="0"/>
+                                                class="form-control price" value = "{{ i.price }}" step="0.00" min="0"/>
                                             </td>
                                             
                                                 
                                             
                                             <td>
-                                                <input type="number" name='total[]' id="total1" placeholder='0.00' class="form-control total"/>
+                                                <input type="number" name='total[]' id="total1" value = "{{ i.total }}" placeholder='0.00' class="form-control total"/>
                                             </td>
 
                                             
@@ -129,6 +137,7 @@
                                             
                                             
                                         </tr>
+                                        {% endfor %}
                                         </tbody>
                                     <tr>
                                         <td style="border: none;"><a class="btn btn-outline-secondary ml-1" role="button" id="addrow" onclick="add_item_row()">+</a></td>
@@ -145,16 +154,16 @@
                                 <div class="row container-fluid p-2 m-0">
                                     <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
                                     <div class="col-sm-1 mt-2">:</div>
-                                    <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' placeholder=0 
-                                        class="form-control" id="sub_total">
+                                    <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' 
+                                        value="{{cred_voucher.subtotal}}" placeholder=0 class="form-control" id="sub_total">
                                     </div>
                                     <div class="col-sm-4 m-0 p-0"></div>
                                 </div>
                                 <div class="row container-fluid p-2 m-0" id="igst1">
                                     <div class="col-sm-4 mt-2"><label for="a" class="text-center">Quantity</label></div>
                                     <div class="col-sm-1 mt-2">:</div>
-                                    <div class="col-sm-7 mt-2"><input type="number" name='quantity' step="any" id="quantity" placeholder=0 
-                                        class="form-control"/>
+                                    <div class="col-sm-7 mt-2"><input type="number" name='quantity' step="any" id="quantity" 
+                                        value="{{cred_voucher.quantity}}" placeholder=0 class="form-control"/>
                                     </div>
                                     <div class="col-sm-4 m-0 p-0"></div>
                                 </div>
@@ -163,8 +172,8 @@
                                 <div class="row container-fluid p-2 m-0">
                                     <div class="col-sm-4 mt-2"><label for="a" class="text-center">Grand Total</label></div>
                                     <div class="col-sm-1 mt-2">:</div>
-                                    <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" placeholder='0.00' readonly
-                                        class="form-control" />
+                                    <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" 
+                                        value="{{cred_voucher.grandtotal}}" placeholder='0.00' readonly class="form-control" />
                                     </div>
                                     <div class="col-sm-4 m-0 p-0"></div>
                                 </div>
@@ -172,16 +181,14 @@
                             
                         </div>
                         <div class="col-md-6">
-                            {% if setup_nar == 'Yes' %}
-
-                                <textarea class="form-control"  id="" name="Note" placeholder="Note" style="height: 190px; margin-top: -39%;"></textarea>
-                            {% elif setup_nar == ' ' %}
-                                <textarea class="form-control"  id="" name="Note" placeholder="Note" style="height: 190px; margin-top: -39%;"></textarea>
-                            {%else%}
+                            {% if vouch.voucherNarration == 'Yes' %}     
+                                <textarea class="form-control"  id="" name="Note" placeholder="Note" 
+                                style="height: 190px; margin-top: -39%;">{{cred_voucher.note}}</textarea>
+                            {% else %}
+                                <textarea class="form-control"  id="" name="Note" placeholder="Note" 
+                                style="height: 190px; margin-top: -39%;"></textarea>
                             
                             {% endif %}
-
-                           
                         </div>
                     </div>
 
@@ -220,7 +227,8 @@
                     
                     <ul>
                         {% for p in ldg%}
-                        <li id={{forloop.counter}}><a href="" data-dismiss="modal" data-target="#view" data-toggle="modal"><p  class="name" value="{{p.name}}"  onclick="addledger('{{p.name}}')"id="namess{{forloop.counter}}" name="namess">
+                        <li id={{forloop.counter}}><a href="" data-dismiss="modal" data-target="#view" data-toggle="modal">
+                            <p  class="name" value="{{p.name}}"  onclick="addledger('{{p.name}}')"id="namess{{forloop.counter}}" name="namess">
                             {{p.name}}
                         </p></a>
                         {% endfor %}</li>
@@ -1663,10 +1671,25 @@
 // });
 // </script>
 
-<!-- <script>
-    const name = localStorage.getItem("type");
-    console.log(name);
-</script> -->
+<script>
+
+// const myInput = document.getElementById('customer').value;
+
+function setValue(){
+    addledger(document.getElementById('customer').value);
+
+    addsl(document.getElementById('ledger_account').value);
+  }
+
+
+
+
+
+
+
+
+
+</script>
 
 
 

@@ -1784,7 +1784,7 @@ class receipt_particulars(models.Model):
 
 class bank_transcations(models.Model):
 
-
+    voucher = models.ForeignKey(Voucher,on_delete=models.CASCADE,null=True,blank=True)
     pay_voucher = models.IntegerField(null=True,blank=True)
     rec_voucher = models.IntegerField(null=True,blank=True)
     pay_particular = models.IntegerField(null=True,blank=True)
@@ -1813,7 +1813,6 @@ class stock_item_voucher(models.Model):
     item = models.ForeignKey(stock_itemcreation,on_delete = models.CASCADE,null = True)
     month = models.ForeignKey(fmonths,on_delete=models.CASCADE,null = True,blank=True)
     
-    #voucher details
     date = models.DateField(null = True)
     voucher_id = models.IntegerField(null=True,blank=True)
     voucher_item_id = models.IntegerField(null=True,blank=True)
