@@ -11878,6 +11878,8 @@ def bank_transcation(request):
 
         vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
 
+        
+
         if vouch_type.voucher_type == 'Payment':
             bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
                                 transcation_type = t_type,instno = instno,instdate = instdate,
@@ -12162,9 +12164,6 @@ def alter_credit_voucher(request,pk):
         item = stock_itemcreation.objects.all() 
         godown = Godown_Items.objects.filter(comp=cmp1) 
 
-        # vouch = Voucher.objects.filter(voucher_type = 'Payment').get(voucher_name = name)
-
-
         cred_voucher = credit_note.objects.get(screditid = pk)
         cred_item = credit_item.objects.filter(scredit_id = pk)
 
@@ -12182,6 +12181,105 @@ def alter_credit_voucher(request,pk):
         }
     return render(request,'alter_credit_note.html',context )
 
+def alter_credit_receipt_details(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+        id = request.GET.get('id')
+
+        cred= credit_note.objects.get(screditid = id)
+        
+        if request.method=='POST':
+            
+            cred.tracking_no = request.GET.get('track_no')
+            cred.dis_doc_no = request.GET.get('dis_doc_no')
+            cred.dis_thr = request.GET.get('dis_through')
+            cred.destination = request.GET.get('dis_desti')
+            cred.carrie_nmag = request.GET.get('car_nm_ag')
+            cred.billlr_no = request.GET.get('bil_lading')
+            cred.mt_vh_no = request.GET.get('mvd_no')
+            cred.date = request.GET.get('date_dis')
+            cred.inv_no = request.GET.get('inv_no')
+            cred.inv_date = request.GET.get('inv_date')
+            cred.comp = cmp1
+            cred.save()
+            
+    return HttpResponse({"message": "success"})
+
+def alter_credit_party_details(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        id = request.GET.get('id')
+        cred= credit_note.objects.get(screditid = id)
+
+        if request.method=='POST':
+            cred.address = request.GET.get('address')
+            cred.state = request.GET.get('state')
+            cred.mname = request.GET.get('mname')
+            cred.country = request.GET.get('country')
+            cred.reg_type = request.GET.get('reg_type')
+            cred.gst_uin = request.GET.get('gst_uin')
+            cred.pl_suply = request.GET.get('pl_suply')
+            cred.save()
+
+    return HttpResponse({"message": "success"})
+
+
+def alter_credit_note(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+        # ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+
+        # ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
+        # item = stock_itemcreation.objects.all() 
+        # godown = Godown_Items.objects.filter(comp=cmp1) 
+
+        cred= credit_note.objects.get(screditid = pk)
+        cred_item = credit_item.objects.filter(scredit_id = pk)
+        print(cred)
+        vouch = Voucher.objects.get(id = cred.voucher_id)
+
+        if request.method=='POST':
+
+            cred.customer = request.GET.get('customer')
+            cred.creditdate = request.GET.get('cdate')
+            cred.ledger_acc = request.GET.get('ledger_account')
+            cred.subtotal = request.GET.get('subtotal')
+            cred.note = request.GET.get('Note')
+            cred.quantity = request.GET.get('quantity')
+            cred.grandtotal = request.GET.get('grandtotal')
+            cred.voucher = vouch
+            cred.save()
+
+        # for i in cred_item:
+
+        #     credi = credit_item.objects.get(id = i.id)
+
+        #     credi.items = request.GET.get('customer')
+        #     cred.creditdate = request.GET.get('cdate')
+        #     cred.ledger_acc = request.GET.get('ledger_account')
+        #     cred.subtotal = request.GET.get('subtotal')
+        #     cred.note = request.GET.get('Note')
+        #     cred.quantity = request.GET.get('quantity')
+        #     cred.grandtotal = request.GET.get('grandtotal')
+        #     cred.voucher = vouch
+        #     cred.save()
+
+
+
+    return redirect('/')
 
 def alter_debit_voucher(request,pk):
 
@@ -12214,15 +12312,139 @@ def alter_debit_voucher(request,pk):
         }
     return render(request,'alter_debit_note.html',context )
 
+def alter_debit_receipt_details(request,pk):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+        id = request.GET.get('address')
 
-def credacc_balance(request):
+        deb= debit_note.objects.get(sdebitid = id)
+        
+        if request.method=='POST':
+            
+            deb.tracking_no = request.GET.get('track_no')
+            deb.dis_doc_no = request.GET.get('dis_doc_no')
+            deb.dis_thr = request.GET.get('dis_through')
+            deb.destination = request.GET.get('dis_desti')
+            deb.carrie_nmag = request.GET.get('car_nm_ag')
+            deb.billlr_no = request.GET.get('bil_lading')
+            deb.mt_vh_no = request.GET.get('mvd_no')
+            deb.date = request.GET.get('date_dis')
+            deb.inv_no = request.GET.get('inv_no')
+            deb.inv_date = request.GET.get('inv_date')
+            deb.comp = cmp1
+            deb.save()
+            
+    return HttpResponse({"message": "success"})
 
-    name = request.GET.get('ac')
-    print(name)
-    ledger = tally_ledger.objects.values().filter(name = name)
-    print(ledger)
-    data = list(ledger)
-    return JsonResponse(data, safe = False)
+def alter_debit_party_details(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        id = request.GET.get('address')
+
+        deb= debit_note.objects.get(sdebitid = id)
+
+        if request.method=='POST':
+            
+            deb.address = request.GET.get('address')
+            deb.state = request.GET.get('state')
+            deb.mname = request.GET.get('mname')
+            deb.country = request.GET.get('country')
+            deb.reg_type = request.GET.get('reg_type')
+            deb.gst_uin = request.GET.get('gst_uin')
+            deb.pl_suply = request.GET.get('pl_suply')
+            deb.save()
+
+    return HttpResponse({"message": "success"})
+
+
+def alter_debit_note(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+        # ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+
+        # ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
+        # item = stock_itemcreation.objects.all() 
+        # godown = Godown_Items.objects.filter(comp=cmp1) 
+
+        deb= debit_note.objects.get(sdebitid = pk)
+        deb_item = debit_item.objects.filter(sdebit_id = pk)
+
+        vouch = Voucher.objects.get(id = deb.voucher_id)
+
+        if request.method=='POST':
+            
+            deb.customer = request.GET.get('customer')
+            deb.creditdate = request.GET.get('cdate')
+            deb.ledger_acc = request.GET.get('ledger_account')
+            deb.subtotal = request.GET.get('subtotal')
+            deb.note = request.GET.get('Note')
+            deb.quantity = request.GET.get('quantity')
+            deb.grandtotal = request.GET.get('grandtotal')
+            deb.voucher = vouch
+            deb.save()
+
+        for i in deb_item:
+
+            debi = debit_item.objects.get(id = i.id)
+
+            # debi.items = request.GET.get('customer')
+            # cred.creditdate = request.GET.get('cdate')
+            # cred.ledger_acc = request.GET.get('ledger_account')
+            # cred.subtotal = request.GET.get('subtotal')
+            # cred.note = request.GET.get('Note')
+            # cred.quantity = request.GET.get('quantity')
+            # cred.grandtotal = request.GET.get('grandtotal')
+            # cred.voucher = vouch
+            # cred.save()
+
+
+
+    return redirect('/')
+
+
+
+def get_sl_det1(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        
+        ledger_account = request.GET.get('ledger_account')
+        customer = request.GET.get('customer')
+      
+     
+        items=tally_ledger.objects.get(company=cmp1,name=ledger_account)
+        item1=tally_ledger.objects.get(company=cmp1,name=customer)
+     
+        opening_blnc = items.opening_blnc
+        opening_blnc_type = items.opening_blnc_type
+        bal_amount=str(opening_blnc)+ ' ' +str(opening_blnc_type)
+
+        opening_blnc1 = item1.opening_blnc
+        opening_blnc_type1 = item1.opening_blnc_type
+        cust_bal_amount=str(opening_blnc1)+ ' ' +str(opening_blnc_type1)
+        
+        
+        
+
+        return JsonResponse({"status":" not","bal_amount":bal_amount,'cust_bal_amount': cust_bal_amount})
+    return redirect('/')
 
 
 
@@ -12331,52 +12553,6 @@ def savrecdet(request):
             inv_no = request.GET.get('inv_no')
             inv_date = request.GET.get('inv_date')
 
-            # if request.GET.get('track_no')=="":
-            #     track_no=request.GET.get('track_no'),
-            # else:
-            #     track_no=""
-    
-            # if str(rbd)=="":
-            #     dis_doc_no=request.GET.get('dis_doc_no'),
-            # else:
-            #     dis_doc_no=""
-            # if request.GET.get('dis_through')=="":
-            #     dis_through=dis_through= request.GET.get('dis_through'),
-            # else:
-            #     dis_through=""
-            # if request.GET.get('dis_desti')=="":
-            #     dis_desti= request.GET.get('dis_desti'),
-            # else:
-            #     dis_desti=""
-            # if request.GET.get('car_nm_ag')=="":
-            #     car_nm_ag=request.GET.get('car_nm_ag'),
-            # else:
-            #     car_nm_ag=""
-            # if request.GET.get('bil_lading')=="":
-            #     bil_lading=request.GET.get('bil_lading'),
-            # else:
-            #     bil_lading=""
-            # if request.GET.get('mvd_no')=="":
-            #     mvd_no=request.GET.get('mvd_no'),
-            # else:
-            #     mvd_no=""
-            # if request.GET.get('date_dis')=="":
-            #     date_dis=request.GET.get('date_dis'),
-            # else:
-            #     date_dis=date.today()
-            # if request.GET.get('inv_no')=="":
-            #     inv_no= request.GET.get('inv_no'),
-            # else:
-            #     inv_no=""
-            
-            # if request.GET.get('inv_date')=="":
-            #     inv_date=request.GET.get('inv_date'),
-            # else:
-            #     inv_date=date.today()
-        
-            # customer = request.GET.get('customer')
-            # print("dis_doc_no")
-            # print(dis_doc_no)
 
             pdebit = credit_note(   
                                     tracking_no=track_no,
@@ -12857,18 +13033,13 @@ def get_sl_det(request):
         cmp1 = Companies.objects.get(id=request.session['t_id'])
         
         ledger_account = request.GET.get('ledger_account')
-
       
      
         items=tally_ledger.objects.get(company=cmp1,name=ledger_account)
-       
      
         opening_blnc = items.opening_blnc
         opening_blnc_type = items.opening_blnc_type
         bal_amount=str(opening_blnc)+ ' ' +str(opening_blnc_type)
-        
-        
-        
 
         return JsonResponse({"status":" not","bal_amount":bal_amount})
     return redirect('/')
@@ -14041,3 +14212,6 @@ def create_voucher_crd_fr(request):
             return redirect('list_crd_voucher')
         return render(request,'vouchers.html',{'tally':tally})
     return redirect('/')
+
+
+

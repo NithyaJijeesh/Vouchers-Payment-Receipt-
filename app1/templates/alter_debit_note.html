@@ -26,7 +26,7 @@
                 <div class="col-sm-4"> Accounting Voucher Alteration (Secondary)</div>
                 <div class="col-sm-4" style="text-align: center; text-transform: capitalize;">{{company.name}}</div>
             </div>
-            <form style="margin-top: 30px;" method="post" action ="{%url 'create_debit'%}">
+            <form style="margin-top: 30px;" method="post" action ="{%url 'alter_debit_voucher' {{deb_voucher.sdebitid}} %}">
                 {% csrf_token %}
                 <div class="ledger">
 
@@ -50,7 +50,7 @@
                             {%endif%} -->
 
                             <h6><span>Debit Note No. : 
-                                <input type="text" name="crd_no" value="{{deb_voucher.sdebitid}}" disabled></span></h6>
+                                <input type="text" name="crd_no" id = "deb_no" value="{{deb_voucher.sdebitid}}" disabled></span></h6>
 
                             
                         </div>
@@ -302,19 +302,26 @@
                         <div class="row">
                             <div class="col-sm-4">
                                 <label for="">Tracking No(s)</label>
-                                <input type="text" name="track_no" id="track_no">
+                                <input type="text" name="track_no" id="track_no" value="{{cred_voucher.tracking_no}}">
                             </div>
                             
                             <div class="col-sm-8">
                                 <div class="col-sm-12">
                                     
-                                        <label for="">Dispatch Doc No &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; :&nbsp;</label><input type="text" name="dis_doc_no" id="dis_doc_no"><br>
-                                        <label for="">Dispatched Through&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;:&nbsp;</label><input type="text" name="dis_through" id="dis_through"><br>
-                                        <label for="">Destination&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; :&nbsp;</label><input type="text" name="dis_desti" id="dis_desti"><br>
-                                        <label for="">Carrier Name/Agent &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label><input type="text" name="car_nm_ag" id="car_nm_ag"><br>
-                                        <label for="">Bill of Lading/LR-RR No :&nbsp;</label><input type="text" name="bil_lading" id="bil_lading"><br>
-                                        <label for="">Motor Vehicle No. &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;</label><input type="text" name="mvd_no" id="mvd_no"><br>
-                                        <label for="">Date&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;:</label> <input type="date" name="date_dis" id="date_dis"><br> 
+                                        <label for="">Dispatch Doc No &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; :&nbsp;</label>
+                                            <input type="text" name="dis_doc_no" id="dis_doc_no" value="{{cred_voucher.dis_doc_no}}"><br>
+                                        <label for="">Dispatched Through&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;:&nbsp;</label>
+                                            <input type="text" name="dis_through" id="dis_through" value="{{cred_voucher.dis_thr}}"><br>
+                                        <label for="">Destination&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; :&nbsp;</label>
+                                            <input type="text" name="dis_desti" id="dis_desti" value="{{cred_voucher.destination}}"><br>
+                                        <label for="">Carrier Name/Agent &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label>
+                                            <input type="text" name="car_nm_ag" id="car_nm_ag" value="{{cred_voucher.carrie_nmag}}"><br>
+                                        <label for="">Bill of Lading/LR-RR No :&nbsp;</label>
+                                            <input type="text" name="bil_lading" id="bil_lading" value="{{cred_voucher.billlr_no}}"><br>
+                                        <label for="">Motor Vehicle No. &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;</label>
+                                            <input type="text" name="mvd_no" id="mvd_no" value="{{cred_voucher.mt_vh_no}}"><br>
+                                        <label for="">Date&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;:</label> 
+                                            <input type="date" name="date_dis" id="date_dis" value="{{cred_voucher.date}}"><br> 
                                          
     
                                         
@@ -333,10 +340,12 @@
                         </div>
                         <div class="row mt-4">
                             <div class="col-sm-6">
-                                <label for="">Invoice No.&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label><input type="text" name="inv_no" id="inv_no"><br> 
+                                <label for="">Invoice No.&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label> 
+                                    <input type="text" name="inv_no" id="inv_no" value="{{cred_voucher.inv_no}}"><br> 
                             </div>
                             <div class="col-sm-6">
-                                <label for="">Date&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label><input type="date" name="inv_date" id="inv_date"><br> 
+                                <label for="">Date&nbsp; &nbsp;&nbsp;&nbsp;:&nbsp;</label>
+                                <input type="date" name="inv_date" id="inv_date" value="{{cred_voucher.inv_date}}"><br> 
                             </div>
                         </div>
                     <div class="row mt-4">
@@ -538,8 +547,9 @@
                         </div> 
                         <div class="col-sm-6">
                             
-                            <a href="" data-dismiss="modal" data-target="#party" data-toggle="modal"><input type="text" name="name" id="name"></a><br> <br> 
-                            <input type="text" name="mname" id="mname"><br><br> 
+                            <a href="" data-dismiss="modal" data-target="#party" data-toggle="modal">
+                                    <input type="text" name="name" id="name" value="{{cred_voucher.mname}}"></a><br> <br> 
+                            <input type="text" name="mname" id="mname" value="{{cred_voucher.mname}}"><br><br> 
                             <textarea name="address" id="address" cols="30" rows="3"></textarea>
                             
                             <!-- <input type="text" name="state" id="state"><br><br>  -->
@@ -584,11 +594,11 @@
                                 <option value="West Bengal">West Bengal</option>
                                 <option value="Other Territory">Other Territory</option>
                             </select><br><br> 
-                            <input type="text" name="country" id="country"><br><br> 
+                            <input type="text" name="country" id="country" value="{{cred_voucher.country}}"><br><br> 
                             
 
-                            <input type="text" name="reg_type" id="reg_type"><br><br> 
-                            <input type="text" name="gst_uin" id="gst_uin"><br><br> 
+                            <input type="text" name="reg_type" id="reg_type" value="{{cred_voucher.reg_type}}"><br><br> 
+                            <input type="text" name="gst_uin" id="gst_uin" value="{{cred_voucher.gst_uin}}"><br><br> 
            
                             
 
@@ -783,6 +793,28 @@
 </script>
 
 <script>
+
+
+function setValue(){
+    
+    ledger_account = $('#ledger_account').val();
+    customer = $("#customer").val()
+    $.ajax({
+        type: "GET",
+        url: "{% url 'get_sl_det1' %}",
+        data: {
+            ledger_account : ledger_account,
+            customer : customer,
+        },
+        success:function(response){
+                console.log(response)
+                bal_amount = response.bal_amount
+                cust_bal_amount = response.cust_bal_amount
+                document.getElementById('ld_bal').value = bal_amount;
+                document.getElementById('cust_bal').value = cust_bal_amount;
+
+        }});
+}
     // for add name to landing page
     function addledger(el){
         var ldg=el
@@ -1477,6 +1509,8 @@
 
     //for save party det   address  state country reg_type gst_uin pl_suply mname
     function partydet(){
+
+        id = $("#deb_no").val();
         mname = $('#mname').val();
         address = $('#address').val();
         state = $('#state').val();
@@ -1490,8 +1524,9 @@
   
         $.ajax({
             type: "GET",
-            url: "{% url 'saveparty_dbt' %}",
+            url: "{% url 'alter_debit_party_details' %}",
             data: {
+                id:id,
                 mname : mname,
                 address : address,
                 state : state,
@@ -1507,6 +1542,7 @@
 
     function recdet(){
 
+        id = $("#deb_no").val();
         track_no = $('#track_no').val();
         dis_doc_no = $('#dis_doc_no').val();
         dis_through = $('#dis_through').val();
@@ -1523,8 +1559,9 @@
   
         $.ajax({
             type: "GET",
-            url: "{% url 'savrecdet_dbt' %}",
+            url: "{% url 'alter_debit_receipt_details' %}",
             data: {
+                id : id,
                 track_no : track_no,
                 dis_doc_no : dis_doc_no,
                 dis_through : dis_through,

@@ -57,54 +57,54 @@
                     <tr>
                     <td class="text-left">{{beg_date}}</td>
                     <td colspan="3" class=" text-left "><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.Particulars}}</a></td>
-                    <td colspan="3" class="text-right">{{v.Voucher_type}}</td>
-                    <td colspan="2" class="text-right">{{v.Voucher_no}}</td>
+                    <td colspan="3" class="text-right"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.Voucher_type}}</a></td>
+                    <td colspan="2" class="text-right"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.Voucher_no}}</a></td>
                         
                     {% if v.inwards_qty is not None %}
-                    <th class="border-left text-center">{{v.inwards_qty}} {{item.units}}</th>
-                    <th class="text-center">{{v.inwards_val}}</th>
+                    <th class="border-left text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.inwards_qty}} {{item.units}}</a></th>
+                    <th class="text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.inwards_val}}</a></th>
                     {% else %}
-                    <th class="border-left"></th>
-                    <th></th>
+                    <th class="border-left"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'></a></th>
+                    <th><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'></a></th>
                     {% endif %}
                         
                     {% if v.outwards_qty is not None %}
-                    <th class="border-left text-center">{{v.outwards_qty}} {{item.units}}</th>
-                    <th class="text-center">{{v.outwards_val}}</th>
+                    <th class="border-left text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.outwards_qty}} {{item.units}}</a></th>
+                    <th class="text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.outwards_val}}</a></th>
                     {% else %}
-                    <th class="border-left"></th>
-                    <th></th>
+                    <th class="border-left"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'></a></th>
+                    <th><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'></a></th>
                     {% endif %}
                     
-                    <th class="border-left text-center">{{v.closing_qty}} {{item.units}}</th>
-                    <th class="text-center">{{v.closing_val}}</th> 
+                    <th class="border-left text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.closing_qty}} {{item.units}}</a></th>
+                    <th class="text-center"><a href = '{% url "alter_credit_voucher" v.Voucher_no %}'>{{v.closing_val}}</a></th> 
                     </tr>
 
                     {% elif  v.vouch_type == 'Debit_Note' %}
                     <tr>
                         <td class="text-left">{{beg_date}}</td>
                         <td colspan="3" class=" text-left "><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.Particulars}}</a></td>
-                        <td colspan="3" class="text-right">{{v.Voucher_type}}</td>
-                        <td colspan="2" class="text-right">{{v.Voucher_no}}</td>
+                        <td colspan="3" class="text-right"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.Voucher_type}}</a></td>
+                        <td colspan="2" class="text-right"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.Voucher_no}}</a></td>
                             
                         {% if v.inwards_qty is not None %}
-                        <th class="border-left text-center">{{v.inwards_qty}} {{item.units}}</th>
-                        <th class="text-center">{{v.inwards_val}}</th>
+                        <th class="border-left text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.inwards_qty}} {{item.units}}</a></th>
+                        <th class="text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.inwards_val}}</a></th>
                         {% else %}
-                        <th class="border-left"></th>
-                        <th></th>
+                        <th class="border-left"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'></a></th>
+                        <th><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'></a></th>
                         {% endif %}
                             
                         {% if v.outwards_qty is not None %}
-                        <th class="border-left text-center">{{v.outwards_qty}} {{item.units}}</th>
-                        <th class="text-center">{{v.outwards_val}}</th>
+                        <th class="border-left text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.outwards_qty}} {{item.units}}</a></th>
+                        <th class="text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.outwards_val}}</a></th>
                         {% else %}
-                        <th class="border-left"></th>
-                        <th></th>
+                        <th class="border-left"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'></a></th>
+                        <th><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'></a></th>
                         {% endif %}
                         
-                        <th class="border-left text-center">{{v.closing_qty}} {{item.units}}</th>
-                        <th class="text-center">{{v.closing_val}}</th> 
+                        <th class="border-left text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.closing_qty}} {{item.units}}</a></th>
+                        <th class="text-center"><a href = '{% url "alter_debit_voucher" v.Voucher_no %}'>{{v.closing_val}}</a></th> 
                         </tr>
 
                     {% endif%}
