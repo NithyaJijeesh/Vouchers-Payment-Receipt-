@@ -1,7 +1,6 @@
 import datetime,calendar
 import random
-import pandas,numpy
-from tally.settings import EMAIL_HOST_USER
+from django.urls import reverse
 from django.core.mail import send_mail
 from calendar import month
 from urllib import response
@@ -24,7 +23,6 @@ from symtable import Symbol
 from unicodedata import name
 from urllib import request
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models.functions import TruncDay
@@ -12121,7 +12119,7 @@ def stock_item_vouchers(request,pk,id):
             vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
             v['vouch_type'] = vouch_type
 
-        print(vouch)
+        # print(vouch)
         m =  int(datetime.strptime(mnth.month_name, '%B').month)
         y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
         beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
@@ -12168,7 +12166,8 @@ def alter_credit_voucher(request,pk):
         cred_item = credit_item.objects.filter(scredit_id = pk)
 
         vouch = Voucher.objects.get(id = cred_voucher.voucher_id)
-        # print(cred_voucher)
+
+        
         context = {
             'company' : cmp1,
             'item':item,
@@ -12182,6 +12181,7 @@ def alter_credit_voucher(request,pk):
     return render(request,'alter_credit_note.html',context )
 
 def alter_credit_receipt_details(request):
+
     if 't_id' in request.session:
         if request.session.has_key('t_id'):
             uid = request.session['t_id']
@@ -12191,22 +12191,24 @@ def alter_credit_receipt_details(request):
         id = request.GET.get('id')
 
         cred= credit_note.objects.get(screditid = id)
+        print(request.GET.get('track_no'))
+            
+        cred.tracking_no = request.GET.get('track_no')
         
-        if request.method=='POST':
-            
-            cred.tracking_no = request.GET.get('track_no')
-            cred.dis_doc_no = request.GET.get('dis_doc_no')
-            cred.dis_thr = request.GET.get('dis_through')
-            cred.destination = request.GET.get('dis_desti')
-            cred.carrie_nmag = request.GET.get('car_nm_ag')
-            cred.billlr_no = request.GET.get('bil_lading')
-            cred.mt_vh_no = request.GET.get('mvd_no')
-            cred.date = request.GET.get('date_dis')
-            cred.inv_no = request.GET.get('inv_no')
-            cred.inv_date = request.GET.get('inv_date')
-            cred.comp = cmp1
-            cred.save()
-            
+        cred.dis_doc_no = request.GET.get('dis_doc_no')
+        cred.dis_thr = request.GET.get('dis_through')
+        cred.destination = request.GET.get('dis_desti')
+        cred.carrie_nmag = request.GET.get('car_nm_ag')
+        cred.billlr_no = request.GET.get('bil_lading')
+        cred.mt_vh_no = request.GET.get('mvd_no')
+        cred.date = request.GET.get('date_dis')
+        cred.inv_no = request.GET.get('inv_no')
+        cred.inv_date = request.GET.get('inv_date')
+        cred.comp = cmp1
+        
+        cred.save()
+
+        print(credit_note.objects.get(screditid = id).tracking_no)
     return HttpResponse({"message": "success"})
 
 def alter_credit_party_details(request):
@@ -12219,15 +12221,14 @@ def alter_credit_party_details(request):
         id = request.GET.get('id')
         cred= credit_note.objects.get(screditid = id)
 
-        if request.method=='POST':
-            cred.address = request.GET.get('address')
-            cred.state = request.GET.get('state')
-            cred.mname = request.GET.get('mname')
-            cred.country = request.GET.get('country')
-            cred.reg_type = request.GET.get('reg_type')
-            cred.gst_uin = request.GET.get('gst_uin')
-            cred.pl_suply = request.GET.get('pl_suply')
-            cred.save()
+        cred.address = request.GET.get('address')
+        cred.state = request.GET.get('state')
+        cred.mname = request.GET.get('mname')
+        cred.country = request.GET.get('country')
+        cred.reg_type = request.GET.get('reg_type')
+        cred.gst_uin = request.GET.get('gst_uin')
+        cred.pl_suply = request.GET.get('pl_suply')
+        cred.save()
 
     return HttpResponse({"message": "success"})
 
@@ -12248,38 +12249,34 @@ def alter_credit_note(request,pk):
 
         cred= credit_note.objects.get(screditid = pk)
         cred_item = credit_item.objects.filter(scredit_id = pk)
-        print(cred)
+        
         vouch = Voucher.objects.get(id = cred.voucher_id)
-
         if request.method=='POST':
 
-            cred.customer = request.GET.get('customer')
-            cred.creditdate = request.GET.get('cdate')
-            cred.ledger_acc = request.GET.get('ledger_account')
-            cred.subtotal = request.GET.get('subtotal')
-            cred.note = request.GET.get('Note')
-            cred.quantity = request.GET.get('quantity')
-            cred.grandtotal = request.GET.get('grandtotal')
+            cred.customer = request.POST.get('customer')
+            cred.creditdate = request.POST.get('cdate')
+            cred.ledger_acc = request.POST.get('ledger_account')
+            cred.subtotal = request.POST.get('subtotal')
+            cred.note = request.POST.get('Note')
+            cred.quantity = request.POST.get('quantity')
+            cred.grandtotal = request.POST.get('grandtotal')
             cred.voucher = vouch
             cred.save()
 
-        # for i in cred_item:
+        for i in cred_item:
 
-        #     credi = credit_item.objects.get(id = i.id)
+            credi = credit_item.objects.get(id = i.id)
+            print(request.POST.getlist('items[]'))
+            credi.items = request.POST.getlist('items[]')
+            credi.quantity = request.POST.getlist('quantity[]')
+            credi.price = request.POST.getlist('price[]')
+            credi.total = request.POST.getlist('total[]')
+            credi.scredit = cred
 
-        #     credi.items = request.GET.get('customer')
-        #     cred.creditdate = request.GET.get('cdate')
-        #     cred.ledger_acc = request.GET.get('ledger_account')
-        #     cred.subtotal = request.GET.get('subtotal')
-        #     cred.note = request.GET.get('Note')
-        #     cred.quantity = request.GET.get('quantity')
-        #     cred.grandtotal = request.GET.get('grandtotal')
-        #     cred.voucher = vouch
-        #     cred.save()
+            cred.save()
 
 
-
-    return redirect('/')
+    return redirect('/stock_summary')
 
 def alter_debit_voucher(request,pk):
 
@@ -12323,20 +12320,19 @@ def alter_debit_receipt_details(request,pk):
 
         deb= debit_note.objects.get(sdebitid = id)
         
-        if request.method=='POST':
             
-            deb.tracking_no = request.GET.get('track_no')
-            deb.dis_doc_no = request.GET.get('dis_doc_no')
-            deb.dis_thr = request.GET.get('dis_through')
-            deb.destination = request.GET.get('dis_desti')
-            deb.carrie_nmag = request.GET.get('car_nm_ag')
-            deb.billlr_no = request.GET.get('bil_lading')
-            deb.mt_vh_no = request.GET.get('mvd_no')
-            deb.date = request.GET.get('date_dis')
-            deb.inv_no = request.GET.get('inv_no')
-            deb.inv_date = request.GET.get('inv_date')
-            deb.comp = cmp1
-            deb.save()
+        deb.tracking_no = request.GET.get('track_no')
+        deb.dis_doc_no = request.GET.get('dis_doc_no')
+        deb.dis_thr = request.GET.get('dis_through')
+        deb.destination = request.GET.get('dis_desti')
+        deb.carrie_nmag = request.GET.get('car_nm_ag')
+        deb.billlr_no = request.GET.get('bil_lading')
+        deb.mt_vh_no = request.GET.get('mvd_no')
+        deb.date = request.GET.get('date_dis')
+        deb.inv_no = request.GET.get('inv_no')
+        deb.inv_date = request.GET.get('inv_date')
+        deb.comp = cmp1
+        deb.save()
             
     return HttpResponse({"message": "success"})
 
@@ -12351,16 +12347,15 @@ def alter_debit_party_details(request,pk):
 
         deb= debit_note.objects.get(sdebitid = id)
 
-        if request.method=='POST':
             
-            deb.address = request.GET.get('address')
-            deb.state = request.GET.get('state')
-            deb.mname = request.GET.get('mname')
-            deb.country = request.GET.get('country')
-            deb.reg_type = request.GET.get('reg_type')
-            deb.gst_uin = request.GET.get('gst_uin')
-            deb.pl_suply = request.GET.get('pl_suply')
-            deb.save()
+        deb.address = request.GET.get('address')
+        deb.state = request.GET.get('state')
+        deb.mname = request.GET.get('mname')
+        deb.country = request.GET.get('country')
+        deb.reg_type = request.GET.get('reg_type')
+        deb.gst_uin = request.GET.get('gst_uin')
+        deb.pl_suply = request.GET.get('pl_suply')
+        deb.save()
 
     return HttpResponse({"message": "success"})
 
@@ -12386,13 +12381,13 @@ def alter_debit_note(request,pk):
 
         if request.method=='POST':
             
-            deb.customer = request.GET.get('customer')
-            deb.creditdate = request.GET.get('cdate')
-            deb.ledger_acc = request.GET.get('ledger_account')
-            deb.subtotal = request.GET.get('subtotal')
-            deb.note = request.GET.get('Note')
-            deb.quantity = request.GET.get('quantity')
-            deb.grandtotal = request.GET.get('grandtotal')
+            deb.customer = request.POST.get('customer')
+            deb.debitdate = request.POST.get('ddate')
+            deb.ledger_acc = request.POST.get('ledger_account')
+            deb.subtotal = request.POST.get('subtotal')
+            deb.note = request.POST.get('Note')
+            deb.quantity = request.POST.get('quantity')
+            deb.grandtotal = request.POST.get('grandtotal')
             deb.voucher = vouch
             deb.save()
 
@@ -12400,15 +12395,12 @@ def alter_debit_note(request,pk):
 
             debi = debit_item.objects.get(id = i.id)
 
-            # debi.items = request.GET.get('customer')
-            # cred.creditdate = request.GET.get('cdate')
-            # cred.ledger_acc = request.GET.get('ledger_account')
-            # cred.subtotal = request.GET.get('subtotal')
-            # cred.note = request.GET.get('Note')
-            # cred.quantity = request.GET.get('quantity')
-            # cred.grandtotal = request.GET.get('grandtotal')
-            # cred.voucher = vouch
-            # cred.save()
+            debi.items = request.POST.get('items[]')
+            debi.quantity = request.POST.get('quantity[]')
+            debi.price = request.POST.get('price[]')
+            debi.total = request.POST.get('total[]')
+            debi.sdebit = deb
+            debi.save()
 
 
 
@@ -12428,7 +12420,6 @@ def get_sl_det1(request):
         ledger_account = request.GET.get('ledger_account')
         customer = request.GET.get('customer')
       
-     
         items=tally_ledger.objects.get(company=cmp1,name=ledger_account)
         item1=tally_ledger.objects.get(company=cmp1,name=customer)
      

@@ -26,7 +26,7 @@
                 <div class="col-sm-4"> Accounting Voucher Alteration (Secondary)</div>
                 <div class="col-sm-4" style="text-align: center; text-transform: capitalize;">{{company.name}}</div>
             </div>
-            <form style="margin-top: 30px;" method="post" action ="{%url 'alter_credit_voucher' cred_voucher.screditid %}">
+            <form style="margin-top: 30px;" method="post" action ="{% url 'alter_credit_note' cred_voucher.screditid %}">
                 {% csrf_token %}
                 <div class="ledger">
 
@@ -38,12 +38,11 @@
                             
                             <h6><span>Credit Note No. : 
                                 <input type="text" name="crd_no" id = "crd_no" value="{{cred_voucher.screditid}}" disabled></span></h6>
-                        
-                            
-                            
+          
                         </div>
                         <div class="col-sm-6" style="text-align: right;">
-                            <h6 name="cdate">{{cred_voucher.creditdate | date:'d-M-y' }}</h6>
+                            <h6 name="cdate1" >{{cred_voucher.creditdate | date:'d-M-y' }}</h6>
+                            <input type="hidden" name = 'cdate' value="{{cred_voucher.creditdate | date:'Y-m-d' }}">
                             <h6 name="cday">{{cred_voucher.creditdate | date:'l' }}</h6>
                         </div>
                     </div>
@@ -58,6 +57,7 @@
                                
 
                                 </div>
+                                
                                 <div class="col-sm-6">
                                     <a href="" data-dismiss="modal" data-target="#crtt" data-toggle="modal">
                                         <input type="text" class="input" name="customer" id = "customer"
@@ -1533,6 +1533,7 @@
         $.ajax({
             type: "GET",
             url: "{% url 'alter_credit_receipt_details'  %}",
+
             data: {
                 id : id,
                 track_no : track_no,
@@ -1550,36 +1551,36 @@
             },
             success:function(response){
                     console.log(response)
-                    // name = response.name
-                    // mname = response.mname
-                    // address = response.address
-                    // state = response.state
-                    // country = response.country
-                    // reg_type = response.reg_type
-                    // gst_uin = response.gst_uin 
-                    // bal_amount = response.bal_amount 
+                    name = response.name
+                    mname = response.mname
+                    address = response.address
+                    state = response.state
+                    country = response.country
+                    reg_type = response.reg_type
+                    gst_uin = response.gst_uin 
+                    bal_amount = response.bal_amount 
 
 
 
-                    // document.getElementById('cust_bal').value = bal_amount;
+                    document.getElementById('cust_bal').value = bal_amount;
                     
-                    // document.getElementById('name').value = name;
-                    // document.getElementById('mname').value = mname; 
-                    // document.getElementById('address').value = address;
-                    // document.getElementById('state').value = state;
-                    // document.getElementById('country').value = country;
-                    // document.getElementById('reg_type').value = reg_type ;
-                    // document.getElementById('gst_uin').value = gst_uin;
-                    // document.getElementById('pl_suply').value = state; 
-                    // var invdrop=document.getElementById('state');
-                    // var option=document.createElement("option");
-                    // option.text=state;
-                    // invdrop.add(option,invdrop[0]);
+                    document.getElementById('name').value = name;
+                    document.getElementById('mname').value = mname; 
+                    document.getElementById('address').value = address;
+                    document.getElementById('state').value = state;
+                    document.getElementById('country').value = country;
+                    document.getElementById('reg_type').value = reg_type ;
+                    document.getElementById('gst_uin').value = gst_uin;
+                    document.getElementById('pl_suply').value = state; 
+                    var invdrop=document.getElementById('state');
+                    var option=document.createElement("option");
+                    option.text=state;
+                    invdrop.add(option,invdrop[0]);
 
-                    // var invdrops=document.getElementById('pl_suply');
-                    // var options=document.createElement("option");
-                    // option.text=state;
-                    // invdrops.add(option,invdrops[0]);
+                    var invdrops=document.getElementById('pl_suply');
+                    var options=document.createElement("option");
+                    option.text=state;
+                    invdrops.add(option,invdrops[0]);
                    
 
             }});
