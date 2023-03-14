@@ -73,9 +73,12 @@
                         <td colspan="17" class="text-white" style="border-right: none; border-left: none;">
                             <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.name }}
                         </td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">{{ i.quantity}} {{i.units}}</td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">{{ i.rate }}</td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">{{ i.value }}</td>
+                        <td class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.quantity}} {{i.units}}</a></td>
+                        <td class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.rate }}</a></td>
+                        <td class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.value }}</a></td>
 
                     </tr>
                     {% endfor %}

@@ -104,7 +104,8 @@
                                         {% for i in deb_item %}
 
                                         <tr id='addr0'>
-                                            <td>1</td>
+                                            <td>{{forloop.counter}}</td>
+                                            <input type="hidden" name="itemid[]" value="{{i.id}}">
                                             <td style="width: 20%;">
                                                 <div class="d-flex">
                                                     <a href="" data-dismiss="modal" data-target="#item_sl" data-toggle="modal" onclick="rowid('product')">
@@ -1514,6 +1515,7 @@ function setValue(){
             type: "GET",
             url: "{% url 'alter_debit_party_details' %}",
             data: {
+                
                 id:id,
                 mname : mname,
                 address : address,

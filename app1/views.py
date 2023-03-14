@@ -12119,6 +12119,12 @@ def stock_item_vouchers(request,pk,id):
             vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
             v['vouch_type'] = vouch_type
 
+            clsval = stock_item_voucher.objects.get(id = v['id'])
+
+            clsval.closing_qty = qty
+            clsval.closing_val = val
+            clsval.save() 
+
         # print(vouch)
         m =  int(datetime.strptime(mnth.month_name, '%B').month)
         y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
@@ -12241,42 +12247,82 @@ def alter_credit_note(request,pk):
         else:
             return redirect('/')
         cmp1 = Companies.objects.get(id=request.session['t_id']) 
-        # ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
-
-        # ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
-        # item = stock_itemcreation.objects.all() 
-        # godown = Godown_Items.objects.filter(comp=cmp1) 
-
+     
         cred= credit_note.objects.get(screditid = pk)
-        cred_item = credit_item.objects.filter(scredit_id = pk)
+        # cred_item = credit_item.objects.filter(scredit_id = pk)
         
         vouch = Voucher.objects.get(id = cred.voucher_id)
+
         if request.method=='POST':
 
-            cred.customer = request.POST.get('customer')
-            cred.creditdate = request.POST.get('cdate')
-            cred.ledger_acc = request.POST.get('ledger_account')
-            cred.subtotal = request.POST.get('subtotal')
-            cred.note = request.POST.get('Note')
-            cred.quantity = request.POST.get('quantity')
-            cred.grandtotal = request.POST.get('grandtotal')
+            cust = request.POST.get('customer')
+            cdate = request.POST.get('cdate')
+            ledg = request.POST.get('ledger_account')
+            subtotal = request.POST.get('subtotal')
+            note = request.POST.get('Note')
+            quantity = request.POST.get('quantity')
+            grandtotal = request.POST.get('grandtotal')
+
+            cred.customer = cust
+            cred.creditdate = cdate
+            cred.ledger_acc = ledg
+            cred.subtotal = subtotal
+            cred.note = note
+            cred.quantity = quantity
+            cred.grandtotal = grandtotal
             cred.voucher = vouch
             cred.save()
 
-        for i in cred_item:
+            ids = request.POST.getlist('itemid[]')
+            items = request.POST.getlist('items[]')
+            quantity = request.POST.getlist('quantity[]')
+            price = request.POST.getlist('price[]')
+            total = request.POST.getlist('total[]')
 
-            credi = credit_item.objects.get(id = i.id)
-            print(request.POST.getlist('items[]'))
-            credi.items = request.POST.getlist('items[]')
-            credi.quantity = request.POST.getlist('quantity[]')
-            credi.price = request.POST.getlist('price[]')
-            credi.total = request.POST.getlist('total[]')
-            credi.scredit = cred
+            mapped=zip(items,quantity,price,total,ids)
+            mapped=list(mapped)
+            print(mapped)
 
-            cred.save()
+            for ele in mapped:
 
+                credi = credit_item.objects.filter(scredit_id = pk).get(id = ele[4])
+                print(credi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = credi.id)
+                print(ele[4])
+                
+                credi.items = ele[0]
+                credi.quantity = ele[1]
+                credi.price = ele[2]
+                credi.total = ele[3]
+                credi.scredit = cred
 
-    return redirect('/stock_summary')
+                credi.save()
+                    
+                item = stock_itemcreation.objects.get(name= ele[0])
+                grp = CreateStockGrp.objects.get(id = item.under_id)
+                    
+                outwards_val =int(ele[1]) * int(ele[2]) * int(item.per)
+                
+                stockitm.company = cmp1
+                stockitm.group = grp
+                stockitm.item = item
+                stockitm.date = cdate
+                stockitm.Particulars = cust
+                stockitm.ledger_account = ledg
+                stockitm.Voucher_type = vouch.voucher_name
+                stockitm.Voucher_no= cred.screditid
+                stockitm.rate = ele[2]
+                stockitm.per = item.per
+                stockitm.outwards_qty = ele[1]
+                stockitm.outwards_val = outwards_val
+                stockitm.voucher_id = cred.screditid
+                stockitm.voucher_item_id = credi.id
+
+                stockitm.save()
+
+            return redirect('credit_notess')
+
+    return redirect('/credit_notess')
 
 def alter_debit_voucher(request,pk):
 
@@ -12309,18 +12355,17 @@ def alter_debit_voucher(request,pk):
         }
     return render(request,'alter_debit_note.html',context )
 
-def alter_debit_receipt_details(request,pk):
+def alter_debit_receipt_details(request):
     if 't_id' in request.session:
         if request.session.has_key('t_id'):
             uid = request.session['t_id']
         else:
             return redirect('/')
         cmp1 = Companies.objects.get(id=request.session['t_id']) 
-        id = request.GET.get('address')
+        id = request.GET.get('id')
 
         deb= debit_note.objects.get(sdebitid = id)
         
-            
         deb.tracking_no = request.GET.get('track_no')
         deb.dis_doc_no = request.GET.get('dis_doc_no')
         deb.dis_thr = request.GET.get('dis_through')
@@ -12336,14 +12381,14 @@ def alter_debit_receipt_details(request,pk):
             
     return HttpResponse({"message": "success"})
 
-def alter_debit_party_details(request,pk):
+def alter_debit_party_details(request):
 
     if 't_id' in request.session:
         if request.session.has_key('t_id'):
             uid = request.session['t_id']
         else:
             return redirect('/')
-        id = request.GET.get('address')
+        id = request.GET.get('id')
 
         deb= debit_note.objects.get(sdebitid = id)
 
@@ -12368,43 +12413,85 @@ def alter_debit_note(request,pk):
         else:
             return redirect('/')
         cmp1 = Companies.objects.get(id=request.session['t_id']) 
-        # ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
-
-        # ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
-        # item = stock_itemcreation.objects.all() 
-        # godown = Godown_Items.objects.filter(comp=cmp1) 
 
         deb= debit_note.objects.get(sdebitid = pk)
-        deb_item = debit_item.objects.filter(sdebit_id = pk)
+        # deb_item = debit_item.objects.filter(sdebit_id = pk)
 
         vouch = Voucher.objects.get(id = deb.voucher_id)
 
         if request.method=='POST':
-            
-            deb.customer = request.POST.get('customer')
-            deb.debitdate = request.POST.get('ddate')
-            deb.ledger_acc = request.POST.get('ledger_account')
-            deb.subtotal = request.POST.get('subtotal')
-            deb.note = request.POST.get('Note')
-            deb.quantity = request.POST.get('quantity')
-            deb.grandtotal = request.POST.get('grandtotal')
+            print(request.POST.get('customer'))
+
+            cust = request.POST.get('customer')
+            ddate = request.POST.get('ddate')
+            ledg = request.POST.get('ledger_account')
+            subtotal = request.POST.get('subtotal')
+            note = request.POST.get('Note')
+            quantity = request.POST.get('quantity')
+            grandtotal = request.POST.get('grandtotal')
+
+            deb.customer = cust
+            deb.debitdate = ddate
+            deb.ledger_acc = ledg
+            deb.subtotal = subtotal
+            deb.note = note
+            deb.quantity = quantity
+            deb.grandtotal = grandtotal
             deb.voucher = vouch
             deb.save()
 
-        for i in deb_item:
 
-            debi = debit_item.objects.get(id = i.id)
+            ids = request.POST.getlist('itemid[]')
+            items = request.POST.getlist('items[]')
+            quantity = request.POST.getlist('quantity[]')
+            price = request.POST.getlist('price[]')
+            total = request.POST.getlist('total[]')
 
-            debi.items = request.POST.get('items[]')
-            debi.quantity = request.POST.get('quantity[]')
-            debi.price = request.POST.get('price[]')
-            debi.total = request.POST.get('total[]')
-            debi.sdebit = deb
-            debi.save()
+            mapped=zip(items,quantity,price,total,ids)
+            mapped=list(mapped)
+            print(mapped)
+
+            for ele in mapped:
+
+                debi = debit_item.objects.filter(scredit_id = pk).get(id = ele[4])
+                print(debi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id)
+                print(ele[4])
+
+                debi.items = ele[0]
+                debi.quantity = ele[1]
+                debi.price = ele[2]
+                debi.total = ele[3]
+                debi.sdebit = deb
+
+                debi.save()
+                    
+                item = stock_itemcreation.objects.get(name= ele[0])
+                grp = CreateStockGrp.objects.get(id = item.under_id)
+                    
+                inwards_val =int(ele[1]) * int(ele[2]) * int(item.per)
+                
+                stockitm.company = cmp1
+                stockitm.group = grp
+                stockitm.item = item
+                stockitm.date = ddate
+                stockitm.Particulars = cust
+                stockitm.ledger_account = ledg
+                stockitm.Voucher_type = vouch.voucher_name
+                stockitm.Voucher_no= deb.sdebitid
+                stockitm.rate = ele[2]
+                stockitm.per = item.per
+                stockitm.inwards_qty = ele[1]
+                stockitm.inwards_val = inwards_val
+                stockitm.voucher_id = deb.sdebitid
+                stockitm.voucher_item_id = debi.id
+
+                stockitm.save()
 
 
+        return redirect('debits_note')
 
-    return redirect('/')
+    return redirect('/debits_note')
 
 
 
