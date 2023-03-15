@@ -11903,7 +11903,8 @@ def stock_summary(request):
             return redirect('/')
         
         if fmonths.objects.values().exists() is False:
-            m = list(calendar.month_name)
+            #m = list(calendar.month_name)
+            m = ['January','February','March','April','May','June','July','August','September','October','November','December']
             for i in range(1,len(m)):
                 f = fmonths()
                 f.month_name = m[i]
@@ -12088,7 +12089,7 @@ def stock_item_vouchers(request,pk,id):
         # for v in vt:
         #     vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
         #     v['vouch_type'] = vouch_type
-        # # print(v['vouch_type'])
+        # print(v['vouch_type'])
 
         vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id).values()
         qty = sum_in_qty = int(item.quantity)
@@ -12194,10 +12195,10 @@ def alter_credit_receipt_details(request):
         else:
             return redirect('/')
         cmp1 = Companies.objects.get(id=request.session['t_id']) 
+
         id = request.GET.get('id')
 
         cred= credit_note.objects.get(screditid = id)
-        print(request.GET.get('track_no'))
             
         cred.tracking_no = request.GET.get('track_no')
         
@@ -12332,6 +12333,7 @@ def alter_debit_voucher(request,pk):
         else:
             return redirect('/')
         cmp1 = Companies.objects.get(id=request.session['t_id'])
+
         deb_voucher = debit_note.objects.get(sdebitid = pk)
         deb_item = debit_item.objects.filter(sdebit_id = pk)
         
@@ -12420,9 +12422,9 @@ def alter_debit_note(request,pk):
         vouch = Voucher.objects.get(id = deb.voucher_id)
 
         if request.method=='POST':
-            print(request.POST.get('customer'))
 
             cust = request.POST.get('customer')
+            print(cust)
             ddate = request.POST.get('ddate')
             ledg = request.POST.get('ledger_account')
             subtotal = request.POST.get('subtotal')
@@ -12453,7 +12455,7 @@ def alter_debit_note(request,pk):
 
             for ele in mapped:
 
-                debi = debit_item.objects.filter(scredit_id = pk).get(id = ele[4])
+                debi = debit_item.objects.filter(sdebit_id = pk).get(id = ele[4])
                 print(debi.id)
                 stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id)
                 print(ele[4])
@@ -13465,13 +13467,8 @@ def create_debit(request):
                 else:
               
                     ldg1.opening_blnc=dr_bal
-             
-                
 
             ldg1.save()
-            
-
-            
 
             ldg=tally_ledger.objects.get(company=cmp1,name=pdebit.ledger_acc)
             ldg.opening_blnc=float(ldg.opening_blnc)+float(pdebit.grandtotal)
@@ -13495,7 +13492,7 @@ def create_debit(request):
                     # Nithya---stock item voucher change--
                     item = stock_itemcreation.objects.get(name= ele[0])
                     grp = CreateStockGrp.objects.get(id = item.under_id)
-                    cred_item = credit_item.objects.last().id
+                    deb_item = debit_item.objects.last().id
                     
                     inwards_value =int(ele[1]) * int(ele[2]) * int(item.per)
                     inwards_val = inwards_value 
@@ -13503,7 +13500,7 @@ def create_debit(request):
                                                              Particulars = cust,ledger_account = ledg,Voucher_type = name,
                                                              Voucher_no=idss.sdebitid,rate = ele[2],per = item.per,
                                                              inwards_qty = ele[1],inwards_val = inwards_val,
-                                                             voucher_id = pdeb.sdebitid,voucher_item_id = cred_item) 
+                                                             voucher_id = pdeb.sdebitid,voucher_item_id = deb_item) 
     
             return redirect('debits_note')
         
