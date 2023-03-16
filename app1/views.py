@@ -5485,7 +5485,7 @@ def stock_items_creation(request):
         if request.method=='POST':
             nm=request.POST['name']
             alias=request.POST['alias']
-            under=request.POST['under']
+            under=request.POST['under'].strip()
             units=request.POST['units']
             batches=request.POST['batches']
             trackdate=request.POST['trackdate']
@@ -5499,7 +5499,10 @@ def stock_items_creation(request):
             per=request.POST['per']
             value=request.POST['value']
             
-            crt=stock_itemcreation(name=nm,alias=alias,under_id=under,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            i = CreateStockGrp.objects.get(name = under)
+
+            
+            crt=stock_itemcreation(name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value)
             crt.save()
             return redirect('load_stock_item_creation')
@@ -11916,11 +11919,29 @@ def stock_summary(request):
         sum = 0
         for g in group:
             value1 = 0
-            item = stock_itemcreation.objects.filter(under_id = g['id']).values('value')
+            item = stock_itemcreation.objects.filter(under_id = g['id'])
+
+            value = 0
             for i in item:
-                value1 += int(i['value'])
-            g['total'] = value1
-            sum += value1
+                
+                vouch = stock_item_voucher.objects.filter(item_id = i.id)
+                total_qty = int(i.quantity)
+                total_val = int(i.value)
+                for v in vouch:
+                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                    in_val = 0 if v.inwards_val is None else v.inwards_val
+                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                    out_val = 0 if v.outwards_val is None else v.outwards_val
+                    total_qty += in_qty - out_qty
+                    total_val += in_val - out_val
+                    # i['total_qty'] = total_qty 
+                    # i['total_val'] = total_val
+
+                value += total_val
+                # for i in item:
+                #     value1 += int(i['value'])
+                g['total'] = value
+            sum += value
             
         startdate = comp.fin_begin
     context = {
@@ -11944,10 +11965,25 @@ def stock_group_summary(request,pk):
 
         comp = Companies.objects.get(id=t_id)
         group = CreateStockGrp.objects.get(id = pk)
-        item = stock_itemcreation.objects.filter(under_id = group.id)
+        item = stock_itemcreation.objects.filter(under_id = group.id).values()
+
         value = 0
         for i in item:
-            value += int(i.value)
+            
+            vouch = stock_item_voucher.objects.filter(item_id = i['id'])
+            total_qty = int(i['quantity'])
+            total_val = int(i['value'])
+            for v in vouch:
+                in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                in_val = 0 if v.inwards_val is None else v.inwards_val
+                out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                out_val = 0 if v.outwards_val is None else v.outwards_val
+                total_qty += in_qty - out_qty
+                total_val += in_val - out_val
+                i['total_qty'] = total_qty 
+                i['total_val'] = total_val
+
+            value += total_val
 
         startdate = comp.fin_begin
 
@@ -11956,6 +11992,8 @@ def stock_group_summary(request,pk):
             'group' : group,
             'item' : item,
             'value' : value,
+            'total_qty': total_qty,
+            'total_val' :total_val,
             'startdate' : startdate,
         }
 
@@ -11985,7 +12023,6 @@ def stock_item_monthly_summary(request,pk):
 
         for i in outvouch:
             outvouch_type.append(i['voucher_name'])
-        # print(outvouch_type)
 
         beg_date = comp.fin_begin
 
@@ -12085,12 +12122,6 @@ def stock_item_vouchers(request,pk,id):
             v.month = m_id
             v.save()
 
-        # vt = stock_item_voucher.objects.filter(item_id = item.id).values()
-        # for v in vt:
-        #     vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
-        #     v['vouch_type'] = vouch_type
-        # print(v['vouch_type'])
-
         vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id).values()
         qty = sum_in_qty = int(item.quantity)
         val = sum_in_val = int(item.value)
@@ -12109,7 +12140,6 @@ def stock_item_vouchers(request,pk,id):
 
             v['closing_qty'] = qty
             v['closing_val'] = val
-            # v.save()
 
             sum_in_qty += in_qty
             sum_in_val += in_val
@@ -12125,9 +12155,9 @@ def stock_item_vouchers(request,pk,id):
             clsval.closing_qty = qty
             clsval.closing_val = val
             clsval.save() 
-
-        # print(vouch)
+        
         m =  int(datetime.strptime(mnth.month_name, '%B').month)
+        print(int(datetime.strftime(v['date'],'%Y')))
         y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
         beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
 
@@ -12302,7 +12332,7 @@ def alter_credit_note(request,pk):
                 item = stock_itemcreation.objects.get(name= ele[0])
                 grp = CreateStockGrp.objects.get(id = item.under_id)
                     
-                outwards_val =int(ele[1]) * int(ele[2]) * int(item.per)
+                outwards_val =int(ele[1]) * int(ele[2]) 
                 
                 stockitm.company = cmp1
                 stockitm.group = grp
@@ -12471,7 +12501,7 @@ def alter_debit_note(request,pk):
                 item = stock_itemcreation.objects.get(name= ele[0])
                 grp = CreateStockGrp.objects.get(id = item.under_id)
                     
-                inwards_val =int(ele[1]) * int(ele[2]) * int(item.per)
+                inwards_val =int(ele[1]) * int(ele[2]) 
                 
                 stockitm.company = cmp1
                 stockitm.group = grp
@@ -12790,7 +12820,7 @@ def create_credit(request):
                     grp = CreateStockGrp.objects.get(id = item.under_id)
                     cred_item = credit_item.objects.last().id
                     
-                    outwards_value =int(ele[1]) * int(ele[2]) * int(item.per)
+                    outwards_value =int(ele[1]) * int(ele[2]) 
                     outwards_val = outwards_value 
                     stock_item_voucher.objects.get_or_create(company = cmp1,group = grp,item = item,date = date.today(),
                                                              Particulars = cust,ledger_account = ledg,Voucher_type = name,
@@ -13210,7 +13240,7 @@ def stock_items_creation_crd(request):
         if request.method=='POST':
             nm=request.POST['name']
             alias=request.POST['alias']
-            under=request.POST['under']
+            under=request.POST['under'].strip()
             units=request.POST['units']
             batches=request.POST['batches']
             trackdate=request.POST['trackdate']
@@ -13223,11 +13253,14 @@ def stock_items_creation_crd(request):
             rate=request.POST['rate']
             per=request.POST['per']
             value=request.POST['value']
+
+            i = CreateStockGrp.objects.get(name = under)
+
             
             gd=Godown_Items.objects.all().last()
             gsd=Godown_Items.objects.get(id=gd.id)
 
-            crt=stock_itemcreation(name=nm,alias=alias,under_id=under,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            crt=stock_itemcreation(name=nm,alias=alias,under= i ,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value,godown=gsd)
             crt.save()
             return redirect('credit_notess')
@@ -13494,7 +13527,7 @@ def create_debit(request):
                     grp = CreateStockGrp.objects.get(id = item.under_id)
                     deb_item = debit_item.objects.last().id
                     
-                    inwards_value =int(ele[1]) * int(ele[2]) * int(item.per)
+                    inwards_value =int(ele[1]) * int(ele[2])
                     inwards_val = inwards_value 
                     stock_item_voucher.objects.get_or_create(company = cmp1,group = grp,item = item,date = date.today(),
                                                              Particulars = cust,ledger_account = ledg,Voucher_type = name,
@@ -13969,7 +14002,7 @@ def stock_items_creation_dbt(request):
         if request.method=='POST':
             nm=request.POST['name']
             alias=request.POST['alias']
-            under=request.POST['under']
+            under=request.POST['under'].strip()
             units=request.POST['units']
             batches=request.POST['batches']
             trackdate=request.POST['trackdate']
@@ -13982,11 +14015,14 @@ def stock_items_creation_dbt(request):
             rate=request.POST['rate']
             per=request.POST['per']
             value=request.POST['value']
+
+            i = CreateStockGrp.objects.get(name = under)
+
             
             gd=Godown_Items.objects.all().last()
             gsd=Godown_Items.objects.get(id=gd.id)
 
-            crt=stock_itemcreation(name=nm,alias=alias,under_id=under,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            crt=stock_itemcreation(name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value,godown=gsd)
             crt.save()
             return redirect('debits_note')

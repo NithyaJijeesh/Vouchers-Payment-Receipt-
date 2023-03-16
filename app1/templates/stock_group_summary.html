@@ -74,11 +74,11 @@
                             <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.name }}
                         </td>
                         <td class="text-center text-white" style="border-right: none; border-left: none;">
-                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.quantity}} {{i.units}}</a></td>
+                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{i.total_qty}} {{i.units}}</a></td>
                         <td class="text-center text-white" style="border-right: none; border-left: none;">
                           <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.rate }}</a></td>
                         <td class="text-center text-white" style="border-right: none; border-left: none;">
-                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.value }}</a></td>
+                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.total_val }}</a></td>
 
                     </tr>
                     {% endfor %}
@@ -91,7 +91,7 @@
                     </td>
                     <td style="border-right: none; border-left: none;"></td>
                     <td style="border-right: none; border-left: none;"></td>
-                    <td class="text-center" style="border-right: none; border-left: none;">{{value}}</td>
+                    <td class="text-center"  style="border-right: none; border-left: none;">{{value}}</td>
                   </tr>
                 </tfoot>
             </table>
