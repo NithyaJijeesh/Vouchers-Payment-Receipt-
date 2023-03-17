@@ -768,42 +768,8 @@ urlpatterns = [
     path('purchase',views.purchase,name='purchase'),
     path('direct_exp',views.direct_exprenses,name='direct_exprenses'),
     path('indirect_exp',views.indirect_expenses,name='indirect_expenses'),
-    path('stock_group2',views.stock_group2,name='stock_group2'),
-    path('items_2/<int:pk>',views.items_2,name='items_2'),
-              
-    #--Nithya------payment and receipt vouchers-------
 
-    path('list_payment_voucher',views.list_payment_voucher,name='list_payment_voucher'),
-    path('list_receipt_voucher',views.list_receipt_voucher,name='list_receipt_voucher'),
-    path('payment_vouchers',views.payment_vouchers,name='payment_vouchers'),
-    path('receipt_vouchers',views.receipt_vouchers,name='receipt_vouchers'),       
-    path('create_payment_voucher' , views.create_payment_voucher,name='create_payment_voucher'),                   
-    path('create_receipt_voucher' , views.create_receipt_voucher,name='create_receipt_voucher'),       
-    path('cur_balance' , views.cur_balance,name='cur_balance'),       
-    path('cur_balance_change' , views.cur_balance_change,name='cur_balance_change'),       
-    path('pcur_balance_change' , views.pcur_balance_change,name='pcur_balance_change'),    
-    path('receipt_cur_balance_change' , views.receipt_cur_balance_change,name='receipt_cur_balance_change'),       
-    path('receipt_pcur_balance_change' , views.receipt_pcur_balance_change,name='receipt_pcur_balance_change'), 
-    path('cheque_range' , views.cheque_range, name='cheque_range'), 
-    path('bank_transcation' , views.bank_transcation, name='bank_transcation'), 
-
-    #-----------stock summary-----------------
-
-    path('stock_summary',views.stock_summary,name = 'stock_summary'),
-    path('stock_group_summary/<pk>',views.stock_group_summary,name = 'stock_group_summary'),
-    path('stock_item_monthly_summary/<pk>',views.stock_item_monthly_summary,name='stock_item_monthly_summary'),
-    path('stock_item_vouchers/<pk>/<id>',views.stock_item_vouchers,name='stock_item_vouchers'),
-    path('alter_credit_voucher/<pk>',views.alter_credit_voucher,name = 'alter_credit_voucher'),
-    path('alter_debit_voucher/<pk>',views.alter_debit_voucher,name = 'alter_debit_voucher'),
-    path('get_sl_det1',views.get_sl_det1,name='get_sl_det1'),
-    path('alter_credit_note/<pk>',views.alter_credit_note,name='alter_credit_note'),
-    path('alter_credit_receipt_details',views.alter_credit_receipt_details,name='alter_credit_receipt_details'),
-    path('alter_credit_party_details',views.alter_credit_party_details,name='alter_credit_party_details'),
-    path('alter_debit_receipt_details',views.alter_debit_receipt_details,name='alter_debit_receipt_details'),
-    path('alter_debit_party_details',views.alter_debit_party_details,name='alter_debit_party_details'),
-    path('alter_debit_note/<pk>',views.alter_debit_note,name='alter_debit_note'),
-
-#saiju
+    #saiju
 
 #credit section
     
@@ -857,6 +823,46 @@ urlpatterns = [
     path('create_voucher_dbt_fr',views.create_voucher_dbt_fr,name='create_voucher_dbt_fr'),
     path('vouchers_crd_fr',views.vouchers_crd_fr,name='vouchers_crd_fr'),
     path('create_voucher_crd_fr',views.create_voucher_crd_fr,name='create_voucher_crd_fr'),
+
+
+              
+    #--Nithya------payment and receipt vouchers-------
+
+    path('list_payment_voucher',views.list_payment_voucher,name='list_payment_voucher'),
+    path('list_receipt_voucher',views.list_receipt_voucher,name='list_receipt_voucher'),
+    path('payment_vouchers',views.payment_vouchers,name='payment_vouchers'),
+    path('receipt_vouchers',views.receipt_vouchers,name='receipt_vouchers'),       
+    path('create_payment_voucher' , views.create_payment_voucher,name='create_payment_voucher'),                   
+    path('create_receipt_voucher' , views.create_receipt_voucher,name='create_receipt_voucher'),       
+    path('cur_balance' , views.cur_balance,name='cur_balance'),       
+    path('cur_balance_change' , views.cur_balance_change,name='cur_balance_change'),       
+    path('pcur_balance_change' , views.pcur_balance_change,name='pcur_balance_change'),    
+    path('receipt_cur_balance_change' , views.receipt_cur_balance_change,name='receipt_cur_balance_change'),       
+    path('receipt_pcur_balance_change' , views.receipt_pcur_balance_change,name='receipt_pcur_balance_change'), 
+    path('cheque_range' , views.cheque_range, name='cheque_range'), 
+    path('bank_transcation' , views.bank_transcation, name='bank_transcation'), 
+
+    #-----------stock summary-----------------
+
+    path('stock_summary',views.stock_summary,name = 'stock_summary'),
+    path('stock_group_summary/<pk>',views.stock_group_summary,name = 'stock_group_summary'),
+    path('stock_item_monthly_summary/<pk>',views.stock_item_monthly_summary,name='stock_item_monthly_summary'),
+    path('stock_item_vouchers/<pk>/<id>',views.stock_item_vouchers,name='stock_item_vouchers'),
+    path('alter_credit_voucher/<pk>',views.alter_credit_voucher,name = 'alter_credit_voucher'),
+    path('alter_debit_voucher/<pk>',views.alter_debit_voucher,name = 'alter_debit_voucher'),
+    path('get_sl_det1',views.get_sl_det1,name='get_sl_det1'),
+    path('alter_credit_note/<pk>',views.alter_credit_note,name='alter_credit_note'),
+    path('alter_credit_receipt_details',views.alter_credit_receipt_details,name='alter_credit_receipt_details'),
+    path('alter_credit_party_details',views.alter_credit_party_details,name='alter_credit_party_details'),
+    path('alter_debit_receipt_details',views.alter_debit_receipt_details,name='alter_debit_receipt_details'),
+    path('alter_debit_party_details',views.alter_debit_party_details,name='alter_debit_party_details'),
+    path('alter_debit_note/<pk>',views.alter_debit_note,name='alter_debit_note'),
+
+
+#---------------profit and loss updation--------------------
+
+    path('stock_group2',views.stock_group2,name='stock_group2'),
+    path('profit_stock_group/<int:pk>',views.profit_stock_group,name='profit_stock_group'),
 
 
 

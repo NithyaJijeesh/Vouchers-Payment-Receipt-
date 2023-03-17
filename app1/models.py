@@ -1822,7 +1822,7 @@ class stock_item_voucher(models.Model):
     Voucher_type = models.CharField(max_length = 50)
     Voucher_no = models.IntegerField(null = True,blank=True)
     rate  = models.IntegerField(null = True,blank=True)
-    per = models.IntegerField(null = True,blank=True)
+    per=models.CharField(max_length=100,null=True)
 
     inwards_qty = models.IntegerField(null = True,blank=True)
     inwards_val = models.IntegerField(null = True,blank=True)
@@ -1831,27 +1831,6 @@ class stock_item_voucher(models.Model):
     closing_qty = models.IntegerField(null = True,blank=True)
     closing_val = models.IntegerField(null = True,blank=True)
     
-'''class stock_item_voucher(models.Model):
-
-    company = models.ForeignKey(Companies,on_delete = models.CASCADE,null = True)
-    group = models.ForeignKey(CreateStockGrp,on_delete = models.CASCADE,null = True)
-    item = models.ForeignKey(stock_itemcreation,on_delete = models.CASCADE,null = True)
-    date = models.DateField(null = True)
-    Particulars = models.CharField(max_length=255,null=True)
-    month = models.ForeignKey(fmonths,on_delete=models.CASCADE,null = True,blank=True)
-
-    Voucher_type = models.CharField(max_length = 50)
-    Voucher_no = models.IntegerField(null = True)
-    rate  = models.IntegerField(null = True,blank=True)
-    per = models.IntegerField(null = True,blank=True)
-    inwards_qty = models.IntegerField(null = True,blank=True)
-    
-    inwards_val = models.IntegerField(null = True,blank=True)
-    outwards_qty = models.IntegerField(null = True,blank=True)
-    outwards_val = models.IntegerField(null = True,blank=True)
-    closing_qty = models.IntegerField(null = True,blank=True)
-    closing_val = models.IntegerField(null = True,blank=True)'''
-
 
 #saiju
 

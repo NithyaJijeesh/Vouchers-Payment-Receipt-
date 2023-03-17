@@ -3432,14 +3432,92 @@ def companycreate(request):
         out=datetime.strptime (n.fin_begin,'%Y-%m-%d')+timedelta (days=364) 
         n.fin_end=out.date()
         n.save()
+
+        #---- default vouchers--
+
+        voucher = Voucher()
+        voucher.company = n
+        voucher.voucher_name = 'Payment'
+        voucher.voucher_type = 'Payment'
+        voucher.abbreviation = 'Pymt'
+        voucher.voucherActivate = 'No'
+        voucher.voucherNumber = 'Automatic'
+        voucher.voucherEffective = 'No'
+        voucher.transaction = 'No'
+        voucher.make_optional = 'No'
+        voucher.voucherNarration = 'Yes'
+        voucher.provideNarration = 'No'
+        voucher.track_purchase = 'No'
+        voucher.prnt_VA_save = 'No'
+        voucher.save()
+
+
+        voucher = Voucher()
+        voucher.company = n
+        voucher.voucher_name = 'Receipt'
+        voucher.voucher_type = 'Receipt'
+        voucher.abbreviation = 'Rcpt'
+        voucher.voucherActivate = 'No'
+        voucher.voucherNumber = 'Automatic'
+        voucher.voucherEffective = 'No'
+        voucher.transaction = 'No'
+        voucher.make_optional = 'No'
+        voucher.voucherNarration = 'Yes'
+        voucher.provideNarration = 'No'
+        voucher.track_purchase = 'No'
+        voucher.prnt_VA_save = 'No'
+        voucher.save()
+
+        voucher = Voucher()
+        voucher.company = n
+        voucher.voucher_name = 'Credit_Note'
+        voucher.voucher_type = 'Credit_Note'
+        voucher.abbreviation = 'C/Note'
+        voucher.voucherActivate = 'No'
+        voucher.voucherNumber = 'Automatic'
+        voucher.voucherEffective = 'No'
+        voucher.transaction = 'No'
+        voucher.make_optional = 'No'
+        voucher.voucherNarration = 'Yes'
+        voucher.provideNarration = 'No'
+        voucher.track_purchase = 'No'
+        voucher.prnt_VA_save = 'No'
+        voucher.save()
+
+        voucher = Voucher()
+        voucher.company = n
+        voucher.voucher_name = 'Debit_Note'
+        voucher.voucher_type = 'Debit_Note'
+        voucher.abbreviation = 'D/Note'
+        voucher.voucherActivate = 'No'
+        voucher.voucherNumber = 'Automatic'
+        voucher.voucherEffective = 'No'
+        voucher.transaction = 'No'
+        voucher.make_optional = 'No'
+        voucher.voucherNarration = 'Yes'
+        voucher.provideNarration = 'No'
+        voucher.track_purchase = 'No'
+        voucher.prnt_VA_save = 'No'
+        voucher.save()
+        
+        #-- default stock group-Primary
+        stockgrp = CreateStockGrp()
+        stockgrp.comp = n
+        stockgrp.name='Primary'
+        stockgrp.alias='Prm'
+        stockgrp.under_name='Primary'
+        stockgrp.quantities='No'
+        stockgrp.save()
+        
+        
+
         subject = 'Welcome Tally Prime'
         message = 'Congratulations,\n' \
         'You have successfully registered with our website.\n' \
         'username :'+str(n.email)+'\n' 'password :'+str(n.password) + \
         '\n' 'WELCOME '
         recepient = str(n.email)
-        send_mail(subject, message, EMAIL_HOST_USER,
-                [recepient], fail_silently=False)
+        send_mail(subject, message, EMAIL_HOST_USER,[recepient], fail_silently=False)
         msg_success = "Registration successfully Check Your Registered Mail"
         messages.info(request,'Company created successfully(Enable the features as per your business needs)')
         return render(request,'features.html',{'cmp':n,'msg_success':msg_success})
@@ -5337,8 +5415,8 @@ def stock_groupcreation(request):
             t_id = request.session['t_id']
         else:
             return redirect('/')
-        tally = Companies.objects.filter(id=t_id)
-        und=CreateStockGrp.objects.all()
+        tally = Companies.objects.get(id=t_id)
+        und=CreateStockGrp.objects.filter(comp = tally)
         if request.method=='POST':
             name=request.POST['name']
             alias=request.POST['alias']
@@ -5479,7 +5557,7 @@ def stock_items_creation(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-        grp=CreateStockGrp.objects.all()
+        grp=CreateStockGrp.objects.filter(comp = tally)
         unt=unit_compound.objects.all()
         u=unit_simple.objects.all()
         if request.method=='POST':
@@ -11166,8 +11244,15 @@ def profit(request):
             #total_qun+=int(p.additional)
         
     closing_value=total_val      
-                   
-    return render(request,'profit.html',{'total':total,'total_income':total_income,'total_direct':total_direct,'total_grp':total_grp,'total_purch':total_purch,'total_direct_exp':total_direct_exp,'total_indirect':total_indirect,'closing_value':closing_value,}) 
+    context = {'total':total,
+               'total_income':total_income,
+               'total_direct':total_direct,
+               'total_grp':total_grp,
+               'total_purch':total_purch,
+               'total_direct_exp':total_direct_exp,
+               'total_indirect':total_indirect,
+               'closing_value':closing_value,}          
+    return render(request,'profit.html',context) 
 
 
 
@@ -11340,47 +11425,7 @@ def item_list(request,pk):
         
     return render(request,'items.html',{'std':std,'total':total,'total_qty':total_qty,}) 
  
-def items_2(request,pk):
-    ptm=stock_itemcreation.objects.filter(under=pk)
-    ptc=CreateStockGrp.objects.get(id=pk)
-    
-    vouch=voucherlist.objects.all()
-    total=0
-    total_qty=0
-    total_value=0
-    total_qunity=0
-    
-    closing_qun=0
-    closing_val=0
-    
-    # for p in ptm:
-    #     total_qun=int(p.quantity)
-    #     total_val=int(p.value)
-    # calculation of voucher
-    # for i in vouch:
-    #     if (i.vouch_type=='sales'):
-    #         total_value +=int(i.value)
-    #         total_qunity+=int(i.quantity)
-    #     elif (i.vouch_type=='purchase'):
-    #         total_val+=int(i.value) 
-    #         total_qun+=int(i.quantity)
-            
-    # closing_qun=total_qun-total_qunity
-    # closing_val=total_val-total_value
-   
-    
-    for i in ptm:
-        if i.value=='':
-            total+=0
-            
-        else:
-            total+=int(i.value)
-            #total_qty+=int(i.quantity)
-        
-    ptc.alias=total
-    ptc.save()    
-        
-    return render(request,'item_2.html',{'ptm':ptm,'closing_val':closing_val,'closing_qun':closing_qun,'total':total})
+
     
 def stockgroup(request):
     ptm=CreateStockGrp.objects.all()
@@ -11410,25 +11455,7 @@ def stockgroup(request):
     # closing_quntity=total_qun-total_qunity
     return render(request,'stockgroup1.html',{'std':std,'ptm':ptm,'total_val':total_val,'total_qun':total_qun})
 
-def stock_group2(request):
-    ptm=CreateStockGrp.objects.all()
-    std=stock_itemcreation.objects.all()
-    total_val=0
-    total_qun=0
-    for p in std:
-        if p.value=='':
-            total_val+=0
-            
-        else:
-           total_val+=int(p.value)
-        
-        if p.quantity=='':
-            total_qun+=0
-            
-        else:
-            total_qun+=int(p.quantity)
-        
-    return render(request,'stockgroup_2.html',{'std':std,'opening_value':total_val,'opening_quntity':total_qun,'ptm':ptm})
+
     
 
 def indirect(request):
@@ -11491,1074 +11518,6 @@ def indirect_expenses(request):
     
     return render(request,'indirect_expences.html',{'std':std,'stm':stm,'total':total,'total_d':total_d})
 
-
-
-#--Nithya -----------------payment and reciept vouchers---------------
-
-def list_payment_voucher(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        ledger = tally_ledger.objects.all()
-        for i in range(len(ledger)):
-            #print(ledger[i])
-            
-            if ledger[i].current_blnc is None:
-                ledger[i].current_blnc = ledger[i].opening_blnc
-                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
-
-                ledger[i].save()
-        #print(ledger)
-        
-        voucher = Voucher.objects.filter(voucher_type = 'Payment')
-        context = {
-                    'voucher': voucher,
-
-                }
-        return render(request,'list_payment_type.html',context)
-
-
-def payment_vouchers(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id = t_id)
-        
-        name = request.POST.get('ptype')
-     
-        vouch = Voucher.objects.filter(voucher_type = 'Payment').get(voucher_name = name)
-
-        ledg_grp_all = tally_ledger.objects.all()
-        ledg_grp = tally_ledger.objects.filter(under__in = ['Bank_Accounts','Cash_in_Hand'])
-
-     
-        v  = 1 if payment_voucher.objects.values('pid').last() is None else payment_voucher.objects.values('pid').last()['pid']+1
-        
-       
-        context = {
-                    'company' : comp ,
-                    'vouch' : vouch,
-                    'date1' : date.today(),
-                    'name':name,
-                    'ledg' : ledg_grp,
-                    'ledg_all' : ledg_grp_all,
-                    'v' : v,
-                }
-        return render(request,'payment_voucher.html',context)
-
-def create_payment_voucher(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id = t_id)
-        
-
-        name=request.POST['type']
-                       
-        
-        vouch = Voucher.objects.filter(voucher_type = 'Payment').get(voucher_name = name)
-
-        if request.method=='POST':
-
-            pid = request.POST.get('idlbl')
-            acc = request.POST.get('acc')
-            accnt = acc.split()
-            date1 = request.POST.get('date1')
-            amount=request.POST.get('total')
-            nrt = request.POST.get('narrate')
-
-            particulars_id = request.POST.getlist("opt[]")
-            amounts = request.POST.getlist("amnt[]")
-
-            
-
-        payment_voucher(pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
-
-        pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid)
-        
-        particulars = []
-        for i in particulars_id:
-            id = tally_ledger.objects.get(id = i)
-            particulars.append(id.name)
-
-        if len(particulars_id)==len(amounts) and particulars_id and amounts:
-               
-            particular=zip(particulars,particulars_id,amounts)
-            mapped=list(particular)
-            # print(mapped)
-            for m in mapped:
-
-                payment_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], pay_voucher = pay_vouch)
-        
-        
-        
-        return redirect('/list_payment_voucher')
-        
-
-def list_receipt_voucher(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        ledger = tally_ledger.objects.all()
-        for i in range(len(ledger)):
-            #print(ledger[i])
-            
-            if ledger[i].current_blnc is None:
-                ledger[i].current_blnc = ledger[i].opening_blnc
-                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
-
-                ledger[i].save()
-
-        voucher = Voucher.objects.filter(voucher_type = 'Receipt')
-        context = {
-                    'voucher' : voucher,
-                    }
-        return render(request,'list_receipt_type.html',context)
-
-def receipt_vouchers(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id = t_id)
-        
-        name = request.POST.get('rtype')
-     
-        vouch = Voucher.objects.filter(voucher_type = 'Receipt').get(voucher_name = name)
-
-        ledg_grp_all = tally_ledger.objects.all()
-        ledg_grp = tally_ledger.objects.filter(under__in = ['Bank_Accounts','Cash_in_Hand'])
-      
-        v  = 1 if receipt_voucher.objects.values('rid').last() is None else receipt_voucher.objects.values('rid').last()['rid']+1
-
-     
-        context = {
-                    'company' : comp ,
-                    'vouch' : vouch,
-                    'date1' : date.today(),
-                    'name':name,
-                    'ledg' : ledg_grp,
-                    'ledg_all' : ledg_grp_all,
-                    'v' : v,
-                  }
-        
-        return render(request,'receipt_voucher.html',context)
-        
-     
-def create_receipt_voucher(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id = t_id)
-        
-
-        name=request.POST['type']
-                       
-
-        vouch = Voucher.objects.filter(voucher_type = 'Receipt').get(voucher_name = name)
-
-        if request.method=='POST':
-
-            rid = request.POST.get('idlbl')
-            acc = request.POST.get('acc')
-            accnt = acc.split()
-            date1 = request.POST.get('date1')
-            amount=request.POST.get('total')
-            nrt = request.POST.get('narrate')
-            
-            particulars_id = request.POST.getlist("opt[]")
-            amounts = request.POST.getlist("amnt[]")
-
-            
-
-            
-        receipt_voucher(rid = rid,account = accnt[1], date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
-
-        rec_vouch=receipt_voucher.objects.get(rid=receipt_voucher.objects.all().last().rid)
-        
-        particulars = []
-        for i in particulars_id:
-            id = tally_ledger.objects.get(id = i)
-            particulars.append(id.name)
-
-
-        if len(particulars_id)==len(amounts) and particulars_id and amounts:
-               
-            particular=zip(particulars,particulars_id,amounts)
-            mapped=list(particular)
-            for m in mapped:
-                receipt_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], rec_voucher = rec_vouch)
-                
-                
-
-
-        return redirect('/list_receipt_voucher')
-
-
-def cur_balance(request):
-    i = request.GET.get('id')
-    ledger = tally_ledger.objects.values().filter(id = i)
-    data = list(ledger)
-    return JsonResponse(data, safe = False)
-
-
-def cur_balance_change(request):
-    
-    ac = request.GET.get('ac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-
-    if type == 'Dr':
-        v1 = int(i)- int(j)
-        if v1 < 0:
-            cur_type = 'Cr'
-            val = abs(v1)
-        else:
-            cur_type = 'Dr'
-            val = v1
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Cr'
-
-    #print(val) 
-    #print(open_type)
-
-    ledger = tally_ledger.objects.get(id = ac)
-
-
-
-    ledger.current_blnc = val
-    ledger.current_blnc_type = cur_type
-    ledger.save()
-   
-    #print(ledger)
-    
-    context = {'val' : val,'cur_type': cur_type, 'ledger' : ledger }
-    
-    return render(request,'curbalance_change.html', context)
-
-def pcur_balance_change(request):
-    
-    ac = request.GET.get('pac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-    #print(type)
-    
-    if type == 'Cr':
-        v2 = int(i)- int(j)
-        if v2 < 0:
-            val = abs(v2)
-            cur_type = 'Dr'
-        else:
-            val = v2
-            cur_type = 'Cr'
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Dr'
-
-    ledger = tally_ledger.objects.get(id = ac)
-
-    ledger.current_blnc = val
-    ledger.current_blnc_type = cur_type
-    ledger.save()
-    #print(ledger.current_blnc)
-
-    
-    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
-
-def receipt_cur_balance_change(request):
-    
-    ac = request.GET.get('ac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-
-    if type == 'Cr':
-        v2 = int(i)- int(j)
-        if v2 < 0:
-            val = abs(v2)
-            cur_type = 'Dr'
-        else:
-            val = v2
-            cur_type = 'Cr'
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Dr'
-        
-
-    ledger = tally_ledger.objects.get(id = ac)
-    
-    return render(request,'curbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
-
-def receipt_pcur_balance_change(request):
-    
-    ac = request.GET.get('pac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-    if type == 'Dr':
-        v1 = int(i)- int(j)
-        if v1 < 0:
-            cur_type = 'Cr'
-            val = abs(v1)
-        else:
-            cur_type = 'Dr'
-            val = v1
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Cr'
-    
-
-    ledger = tally_ledger.objects.get(id = ac)
-
-    #print(val)
-    #print(ledger)
-    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
-
-def cheque_range(request):
-    
-    acname = request.GET.get('account_name')
-
-    data = []
-
-    cqrange = ledger_chequebook.objects.filter(ledger_name = acname).values() if ledger_chequebook.objects.filter(ledger_name = acname).exists() else None
-    start = 0 if cqrange is None else cqrange[0]['from_number']  
-    end = 0 if cqrange is None else cqrange[0]['to_number'] 
-    q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque').values('instno').last()
-    chqnum = 0 if q is None else q['instno']
-    #print(chqnum)
-    if chqnum < end:
-        chqnum = start if q is None else (int(q['instno']) + 1)
-    else:
-        chqnum = 0
-    
-    
-    data.append(start)
-    data.append(end)
-    data.append(chqnum)  
-    #print(chqnum)
-        
-    return JsonResponse(data,safe=False)
-
-def bank_transcation(request):
-    
-    if request.method == 'POST':
-        id = request.POST.get('id')
-        vouch_name = request.POST.get('vouch_type')
-        partacc = request.POST.get('part')
-        bacc = request.POST.get('bacc')
-        t_type = request.POST.get('t_type')
-        instno = request.POST.get('instnum')
-        instdate = request.POST.get('instdate')
-        acnum = request.POST.get('efaccnum')
-        ifsc = request.POST.get('efifs')
-        bname = request.POST.get('efbank')
-        amount = request.POST.get('amount')
-
-        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
-
-        
-
-        if vouch_type.voucher_type == 'Payment':
-            bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
-                                transcation_type = t_type,instno = instno,instdate = instdate,
-                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-        elif vouch_type.voucher_type == 'Receipt':
-
-            bank_transcations(voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
-                                transcation_type = t_type,instno = instno,instdate = instdate,
-                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-
-        
-        return HttpResponse({"message": "success"})
-    
-
-    #------stock summary---------------
-
-def stock_summary(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-        
-        if fmonths.objects.values().exists() is False:
-            #m = list(calendar.month_name)
-            m = ['January','February','March','April','May','June','July','August','September','October','November','December']
-            for i in range(1,len(m)):
-                f = fmonths()
-                f.month_name = m[i]
-                f.save()
-
-        comp = Companies.objects.get(id=t_id)
-        group = CreateStockGrp.objects.all().values()
-
-        sum = 0
-        for g in group:
-            value1 = 0
-            item = stock_itemcreation.objects.filter(under_id = g['id'])
-
-            value = 0
-            for i in item:
-                
-                vouch = stock_item_voucher.objects.filter(item_id = i.id)
-                total_qty = int(i.quantity)
-                total_val = int(i.value)
-                for v in vouch:
-                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-                    in_val = 0 if v.inwards_val is None else v.inwards_val
-                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-                    out_val = 0 if v.outwards_val is None else v.outwards_val
-                    total_qty += in_qty - out_qty
-                    total_val += in_val - out_val
-                    # i['total_qty'] = total_qty 
-                    # i['total_val'] = total_val
-
-                value += total_val
-                # for i in item:
-                #     value1 += int(i['value'])
-                g['total'] = value
-            sum += value
-            
-        startdate = comp.fin_begin
-    context = {
-                'company' : comp,
-                'group' : group,
-                'item' : item,
-                'value' : sum,
-                'startdate' : startdate,
-            }
-    
-    return render(request, 'stock_summary.html', context)
-
-
-def stock_group_summary(request,pk):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id=t_id)
-        group = CreateStockGrp.objects.get(id = pk)
-        item = stock_itemcreation.objects.filter(under_id = group.id).values()
-
-        value = 0
-        for i in item:
-            
-            vouch = stock_item_voucher.objects.filter(item_id = i['id'])
-            total_qty = int(i['quantity'])
-            total_val = int(i['value'])
-            for v in vouch:
-                in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-                in_val = 0 if v.inwards_val is None else v.inwards_val
-                out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-                out_val = 0 if v.outwards_val is None else v.outwards_val
-                total_qty += in_qty - out_qty
-                total_val += in_val - out_val
-                i['total_qty'] = total_qty 
-                i['total_val'] = total_val
-
-            value += total_val
-
-        startdate = comp.fin_begin
-
-    context = {
-            'company' : comp,
-            'group' : group,
-            'item' : item,
-            'value' : value,
-            'total_qty': total_qty,
-            'total_val' :total_val,
-            'startdate' : startdate,
-        }
-
-    return render(request, 'stock_group_summary.html',context)
-
-def stock_item_monthly_summary(request,pk):
-        
-        if 't_id' in request.session:
-            if request.session.has_key('t_id'):
-                t_id = request.session['t_id']
-            else:
-                return redirect('/')
-
-        comp = Companies.objects.get(id=t_id)
-   
-        months = fmonths.objects.values()
-        item = stock_itemcreation.objects.get(id=pk)
-        vouch = stock_item_voucher.objects.filter(item_id = item.id)
-
-        invouch = Voucher.objects.filter(voucher_type__in = ['Debit_Note','Purchase']).values('voucher_name')
-        outvouch = Voucher.objects.filter(voucher_type__in = ['Credit_Note','Sales']).values('voucher_name')
-
-        invouch_type = []
-        outvouch_type = []
-        for i in invouch:
-            invouch_type.append(i['voucher_name'])
-
-        for i in outvouch:
-            outvouch_type.append(i['voucher_name'])
-
-        beg_date = comp.fin_begin
-
-        if vouch.exists():
-            v = vouch.latest('date')
-            new_date = (v.date)
-        else:
-            new_date = comp.fin_begin
-
-        total_inqty = total_inval = total_outqty = total_outval = 0
-        sum_in_qty = sum_in_val = sum_out_qty = sum_out_val = 0
-        in_qty = in_val = out_qty = out_val =0
-        total_qty = int(item.quantity)
-        total_val = int(item.value)
-
-        for mnth in months:
-            
-            if vouch.exists():
-
-                for v in vouch:
-                    if v.month_id == mnth['id']:
-                        
-                        in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-                        in_val = 0 if v.inwards_val is None else v.inwards_val
-                        out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-                        out_val = 0 if v.outwards_val is None else v.outwards_val
-                        
-                        total_inqty += in_qty
-                        total_inval += in_val
-                        total_outqty += out_qty
-                        total_outval += out_val
-                        # print(total_outqty)
-                        if v.Voucher_type in  invouch_type :
-
-                            mnth['total_inqty'] = total_inqty
-                            mnth['total_inval'] = total_inval
-
-                        else:
-                            mnth['total_outqty'] = total_outqty
-                            mnth['total_outval'] = total_outval
-                        
-                        total_qty += in_qty - out_qty
-                        total_val += in_val - out_val
-
-                        mnth['total_qty'] = total_qty
-                        mnth['total_val'] = total_val
-
-                        sum_in_qty += in_qty
-                        sum_in_val += in_val
-                        sum_out_qty += out_qty
-                        sum_out_val += out_val  
-
-                total_inqty = total_inval = total_outqty = total_outval = 0
-            
-        last_qty = total_qty
-        last_val = total_val
-
-        
-        context = {
-                    'company' : comp,
-                    'months' : months,
-                    'item' : item,
-                    'voucher' : vouch,
-                    'tot_qty' :last_qty,
-                    'tot_val' : last_val,
-                    'sum_in_qty' : sum_in_qty,
-                    'sum_in_val' : sum_in_val,
-                    'sum_out_qty' : sum_out_qty,
-                    'sum_out_val' : sum_out_val,
-                    'beg_date' : beg_date,
-                    'new_date' : new_date,
-                    
-                }
-
-        return render(request,'stock_item_monthly_summary.html',context)
-
-def stock_item_vouchers(request,pk,id):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-
-        comp = Companies.objects.get(id = t_id)
-        
-        item = stock_itemcreation.objects.get(id = pk)
-        mnth = fmonths.objects.get(id = id)
-
-        voucher = stock_item_voucher.objects.filter(item_id = item.id)
-
-        for v in voucher:
-        
-            v_month = v.date.strftime('%B')
-            m_id = fmonths.objects.get(month_name = v_month)
-
-            v.month = m_id
-            v.save()
-
-        vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id).values()
-        qty = sum_in_qty = int(item.quantity)
-        val = sum_in_val = int(item.value)
-
-        sum_out_qty = sum_out_val = beg_date = end_date= 0
-
-        for v in vouch:    
-
-            in_qty = 0 if v['inwards_qty'] is None else v['inwards_qty']
-            in_val = 0 if v['inwards_val'] is None else v['inwards_val']
-            out_qty = 0 if v['outwards_qty'] is None else v['outwards_qty']
-            out_val = 0 if v['outwards_val'] is None else v['outwards_val']
-
-            qty += in_qty-out_qty
-            val += in_val-out_val
-
-            v['closing_qty'] = qty
-            v['closing_val'] = val
-
-            sum_in_qty += in_qty
-            sum_in_val += in_val
-            sum_out_qty += out_qty
-            sum_out_val += out_val
-            
-
-            vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
-            v['vouch_type'] = vouch_type
-
-            clsval = stock_item_voucher.objects.get(id = v['id'])
-
-            clsval.closing_qty = qty
-            clsval.closing_val = val
-            clsval.save() 
-        
-        m =  int(datetime.strptime(mnth.month_name, '%B').month)
-        print(int(datetime.strftime(v['date'],'%Y')))
-        y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
-        beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
-
-        if mnth.month_name != 'December':
-            m2 =  int(datetime.strptime(mnth.month_name, '%B').month)+1
-        else:
-            m2 = 10
-            y = int(datetime.strftime(v['date'],'%Y'))     #int(v.date.strftime('%Y'))
-        end_date = (datetime(y,m2,1) - timedelta(days=1)).date().strftime('%d-%b-%y')
-
-        context = {
-                    'company' : comp,
-                    'item' : item,
-                    'voucher' : vouch,
-                    'mnth' : mnth,
-                    'sum_in_qty' : sum_in_qty,
-                    'sum_in_val' : sum_in_val,
-                    'sum_out_qty' : sum_out_qty,
-                    'sum_out_val' : sum_out_val,
-                    'sum_closing_qty': qty,
-                    'sum_closing_val':val, 
-                    'beg_date' : beg_date, 
-                    'end_date' : end_date
-                  }
-    
-        return render(request,'stock_item_vouchers.html',context)
-
-def alter_credit_voucher(request,pk):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id']) 
-
-        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
-
-        ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
-        item = stock_itemcreation.objects.all() 
-        godown = Godown_Items.objects.filter(comp=cmp1) 
-
-        cred_voucher = credit_note.objects.get(screditid = pk)
-        cred_item = credit_item.objects.filter(scredit_id = pk)
-
-        vouch = Voucher.objects.get(id = cred_voucher.voucher_id)
-
-        
-        context = {
-            'company' : cmp1,
-            'item':item,
-            'ldg':ldg,
-            "ldg1":ldg1,
-            "godown":godown,
-            'cred_voucher' : cred_voucher,
-            'cred_item' :cred_item,
-            'vouch' : vouch,
-        }
-    return render(request,'alter_credit_note.html',context )
-
-def alter_credit_receipt_details(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id']) 
-
-        id = request.GET.get('id')
-
-        cred= credit_note.objects.get(screditid = id)
-            
-        cred.tracking_no = request.GET.get('track_no')
-        
-        cred.dis_doc_no = request.GET.get('dis_doc_no')
-        cred.dis_thr = request.GET.get('dis_through')
-        cred.destination = request.GET.get('dis_desti')
-        cred.carrie_nmag = request.GET.get('car_nm_ag')
-        cred.billlr_no = request.GET.get('bil_lading')
-        cred.mt_vh_no = request.GET.get('mvd_no')
-        cred.date = request.GET.get('date_dis')
-        cred.inv_no = request.GET.get('inv_no')
-        cred.inv_date = request.GET.get('inv_date')
-        cred.comp = cmp1
-        
-        cred.save()
-
-        print(credit_note.objects.get(screditid = id).tracking_no)
-    return HttpResponse({"message": "success"})
-
-def alter_credit_party_details(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        id = request.GET.get('id')
-        cred= credit_note.objects.get(screditid = id)
-
-        cred.address = request.GET.get('address')
-        cred.state = request.GET.get('state')
-        cred.mname = request.GET.get('mname')
-        cred.country = request.GET.get('country')
-        cred.reg_type = request.GET.get('reg_type')
-        cred.gst_uin = request.GET.get('gst_uin')
-        cred.pl_suply = request.GET.get('pl_suply')
-        cred.save()
-
-    return HttpResponse({"message": "success"})
-
-
-def alter_credit_note(request,pk):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id']) 
-     
-        cred= credit_note.objects.get(screditid = pk)
-        # cred_item = credit_item.objects.filter(scredit_id = pk)
-        
-        vouch = Voucher.objects.get(id = cred.voucher_id)
-
-        if request.method=='POST':
-
-            cust = request.POST.get('customer')
-            cdate = request.POST.get('cdate')
-            ledg = request.POST.get('ledger_account')
-            subtotal = request.POST.get('subtotal')
-            note = request.POST.get('Note')
-            quantity = request.POST.get('quantity')
-            grandtotal = request.POST.get('grandtotal')
-
-            cred.customer = cust
-            cred.creditdate = cdate
-            cred.ledger_acc = ledg
-            cred.subtotal = subtotal
-            cred.note = note
-            cred.quantity = quantity
-            cred.grandtotal = grandtotal
-            cred.voucher = vouch
-            cred.save()
-
-            ids = request.POST.getlist('itemid[]')
-            items = request.POST.getlist('items[]')
-            quantity = request.POST.getlist('quantity[]')
-            price = request.POST.getlist('price[]')
-            total = request.POST.getlist('total[]')
-
-            mapped=zip(items,quantity,price,total,ids)
-            mapped=list(mapped)
-            print(mapped)
-
-            for ele in mapped:
-
-                credi = credit_item.objects.filter(scredit_id = pk).get(id = ele[4])
-                print(credi.id)
-                stockitm = stock_item_voucher.objects.get(voucher_item_id = credi.id)
-                print(ele[4])
-                
-                credi.items = ele[0]
-                credi.quantity = ele[1]
-                credi.price = ele[2]
-                credi.total = ele[3]
-                credi.scredit = cred
-
-                credi.save()
-                    
-                item = stock_itemcreation.objects.get(name= ele[0])
-                grp = CreateStockGrp.objects.get(id = item.under_id)
-                    
-                outwards_val =int(ele[1]) * int(ele[2]) 
-                
-                stockitm.company = cmp1
-                stockitm.group = grp
-                stockitm.item = item
-                stockitm.date = cdate
-                stockitm.Particulars = cust
-                stockitm.ledger_account = ledg
-                stockitm.Voucher_type = vouch.voucher_name
-                stockitm.Voucher_no= cred.screditid
-                stockitm.rate = ele[2]
-                stockitm.per = item.per
-                stockitm.outwards_qty = ele[1]
-                stockitm.outwards_val = outwards_val
-                stockitm.voucher_id = cred.screditid
-                stockitm.voucher_item_id = credi.id
-
-                stockitm.save()
-
-            return redirect('credit_notess')
-
-    return redirect('/credit_notess')
-
-def alter_debit_voucher(request,pk):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id'])
-
-        deb_voucher = debit_note.objects.get(sdebitid = pk)
-        deb_item = debit_item.objects.filter(sdebit_id = pk)
-        
-        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
-    
-        ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
-        item = stock_itemcreation.objects.all() 
-        godown = Godown_Items.objects.filter(comp=cmp1) 
-        
-        vouch = Voucher.objects.get(id = deb_voucher.voucher_id)
-
-        context = {
-            'item':item,
-            'ldg':ldg,
-            "ldg1":ldg1,
-            "godown":godown,
-            'vouch' : vouch,
-            'company' : cmp1,
-            'deb_voucher' : deb_voucher,
-            'deb_item' :deb_item,
-        }
-    return render(request,'alter_debit_note.html',context )
-
-def alter_debit_receipt_details(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id']) 
-        id = request.GET.get('id')
-
-        deb= debit_note.objects.get(sdebitid = id)
-        
-        deb.tracking_no = request.GET.get('track_no')
-        deb.dis_doc_no = request.GET.get('dis_doc_no')
-        deb.dis_thr = request.GET.get('dis_through')
-        deb.destination = request.GET.get('dis_desti')
-        deb.carrie_nmag = request.GET.get('car_nm_ag')
-        deb.billlr_no = request.GET.get('bil_lading')
-        deb.mt_vh_no = request.GET.get('mvd_no')
-        deb.date = request.GET.get('date_dis')
-        deb.inv_no = request.GET.get('inv_no')
-        deb.inv_date = request.GET.get('inv_date')
-        deb.comp = cmp1
-        deb.save()
-            
-    return HttpResponse({"message": "success"})
-
-def alter_debit_party_details(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        id = request.GET.get('id')
-
-        deb= debit_note.objects.get(sdebitid = id)
-
-            
-        deb.address = request.GET.get('address')
-        deb.state = request.GET.get('state')
-        deb.mname = request.GET.get('mname')
-        deb.country = request.GET.get('country')
-        deb.reg_type = request.GET.get('reg_type')
-        deb.gst_uin = request.GET.get('gst_uin')
-        deb.pl_suply = request.GET.get('pl_suply')
-        deb.save()
-
-    return HttpResponse({"message": "success"})
-
-
-def alter_debit_note(request,pk):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id']) 
-
-        deb= debit_note.objects.get(sdebitid = pk)
-        # deb_item = debit_item.objects.filter(sdebit_id = pk)
-
-        vouch = Voucher.objects.get(id = deb.voucher_id)
-
-        if request.method=='POST':
-
-            cust = request.POST.get('customer')
-            print(cust)
-            ddate = request.POST.get('ddate')
-            ledg = request.POST.get('ledger_account')
-            subtotal = request.POST.get('subtotal')
-            note = request.POST.get('Note')
-            quantity = request.POST.get('quantity')
-            grandtotal = request.POST.get('grandtotal')
-
-            deb.customer = cust
-            deb.debitdate = ddate
-            deb.ledger_acc = ledg
-            deb.subtotal = subtotal
-            deb.note = note
-            deb.quantity = quantity
-            deb.grandtotal = grandtotal
-            deb.voucher = vouch
-            deb.save()
-
-
-            ids = request.POST.getlist('itemid[]')
-            items = request.POST.getlist('items[]')
-            quantity = request.POST.getlist('quantity[]')
-            price = request.POST.getlist('price[]')
-            total = request.POST.getlist('total[]')
-
-            mapped=zip(items,quantity,price,total,ids)
-            mapped=list(mapped)
-            print(mapped)
-
-            for ele in mapped:
-
-                debi = debit_item.objects.filter(sdebit_id = pk).get(id = ele[4])
-                print(debi.id)
-                stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id)
-                print(ele[4])
-
-                debi.items = ele[0]
-                debi.quantity = ele[1]
-                debi.price = ele[2]
-                debi.total = ele[3]
-                debi.sdebit = deb
-
-                debi.save()
-                    
-                item = stock_itemcreation.objects.get(name= ele[0])
-                grp = CreateStockGrp.objects.get(id = item.under_id)
-                    
-                inwards_val =int(ele[1]) * int(ele[2]) 
-                
-                stockitm.company = cmp1
-                stockitm.group = grp
-                stockitm.item = item
-                stockitm.date = ddate
-                stockitm.Particulars = cust
-                stockitm.ledger_account = ledg
-                stockitm.Voucher_type = vouch.voucher_name
-                stockitm.Voucher_no= deb.sdebitid
-                stockitm.rate = ele[2]
-                stockitm.per = item.per
-                stockitm.inwards_qty = ele[1]
-                stockitm.inwards_val = inwards_val
-                stockitm.voucher_id = deb.sdebitid
-                stockitm.voucher_item_id = debi.id
-
-                stockitm.save()
-
-
-        return redirect('debits_note')
-
-    return redirect('/debits_note')
-
-
-
-def get_sl_det1(request):
-
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            uid = request.session['t_id']
-        else:
-            return redirect('/')
-        cmp1 = Companies.objects.get(id=request.session['t_id'])
-        
-        ledger_account = request.GET.get('ledger_account')
-        customer = request.GET.get('customer')
-      
-        items=tally_ledger.objects.get(company=cmp1,name=ledger_account)
-        item1=tally_ledger.objects.get(company=cmp1,name=customer)
-     
-        opening_blnc = items.opening_blnc
-        opening_blnc_type = items.opening_blnc_type
-        bal_amount=str(opening_blnc)+ ' ' +str(opening_blnc_type)
-
-        opening_blnc1 = item1.opening_blnc
-        opening_blnc_type1 = item1.opening_blnc_type
-        cust_bal_amount=str(opening_blnc1)+ ' ' +str(opening_blnc_type1)
-        
-        
-        
-
-        return JsonResponse({"status":" not","bal_amount":bal_amount,'cust_bal_amount': cust_bal_amount})
-    return redirect('/')
-
-
-
-# -----stock summary
 
 # Credit Note
 # def credit_note(request):
@@ -14326,3 +13285,1206 @@ def create_voucher_crd_fr(request):
 
 
 
+#--Nithya -----------------payment and reciept vouchers---------------
+
+def list_payment_voucher(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
+        ledger = tally_ledger.objects.filter(company_id = comp)
+        for i in range(len(ledger)):
+            
+            if ledger[i].current_blnc is None:
+                ledger[i].current_blnc = ledger[i].opening_blnc
+                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
+
+                ledger[i].save()
+        #print(ledger)
+        
+        voucher = Voucher.objects.filter(voucher_type = 'Payment',company = comp)
+        context = {
+                    'voucher': voucher,
+
+                }
+        return render(request,'list_payment_type.html',context)
+
+
+def payment_vouchers(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        
+        name = request.POST.get('ptype')
+     
+        vouch = Voucher.objects.filter(voucher_type = 'Payment',company = comp).get(voucher_name = name)
+
+        ledg_grp_all = tally_ledger.objects.filter(company = comp)
+        ledg_grp = tally_ledger.objects.filter(company = comp,under__in = ['Bank_Accounts','Cash_in_Hand'])
+
+     
+        v  = 1 if payment_voucher.objects.values('pid').last() is None else payment_voucher.objects.values('pid').last()['pid']+1
+        
+       
+        context = {
+                    'company' : comp ,
+                    'vouch' : vouch,
+                    'date1' : date.today(),
+                    'name':name,
+                    'ledg' : ledg_grp,
+                    'ledg_all' : ledg_grp_all,
+                    'v' : v,
+                }
+        return render(request,'payment_voucher.html',context)
+
+def create_payment_voucher(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        
+
+        name=request.POST['type']
+                       
+        
+        vouch = Voucher.objects.filter(voucher_type = 'Payment',company = comp).get(voucher_name = name)
+
+        if request.method=='POST':
+
+            pid = request.POST.get('idlbl')
+            acc = request.POST.get('acc')
+            accnt = acc.split()
+            date1 = request.POST.get('date1')
+            amount=request.POST.get('total')
+            nrt = request.POST.get('narrate')
+
+            particulars_id = request.POST.getlist("opt[]")
+            amounts = request.POST.getlist("amnt[]")
+
+            
+
+        payment_voucher(pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
+
+        pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid)
+        
+        particulars = []
+        for i in particulars_id:
+            id = tally_ledger.objects.get(id = i)
+            particulars.append(id.name)
+
+        if len(particulars_id)==len(amounts) and particulars_id and amounts:
+               
+            particular=zip(particulars,particulars_id,amounts)
+            mapped=list(particular)
+            # print(mapped)
+            for m in mapped:
+
+                payment_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], pay_voucher = pay_vouch)
+        
+        
+        
+        return redirect('/list_payment_voucher')
+        
+
+def list_receipt_voucher(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        ledger = tally_ledger.objects.filter(company_id = comp)
+        for i in range(len(ledger)):
+            #print(ledger[i])
+            
+            if ledger[i].current_blnc is None:
+                ledger[i].current_blnc = ledger[i].opening_blnc
+                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
+
+                ledger[i].save()
+
+        voucher = Voucher.objects.filter(voucher_type = 'Receipt')
+        context = {
+                    'voucher' : voucher,
+                    }
+        return render(request,'list_receipt_type.html',context)
+
+def receipt_vouchers(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        
+        name = request.POST.get('rtype')
+     
+        vouch = Voucher.objects.filter(voucher_type = 'Receipt',company = comp).get(voucher_name = name)
+
+        ledg_grp_all = tally_ledger.objects.filter(company = comp)
+        ledg_grp = tally_ledger.objects.filter(company = comp,under__in = ['Bank_Accounts','Cash_in_Hand'])
+      
+        v  = 1 if receipt_voucher.objects.values('rid').last() is None else receipt_voucher.objects.values('rid').last()['rid']+1
+
+     
+        context = {
+                    'company' : comp ,
+                    'vouch' : vouch,
+                    'date1' : date.today(),
+                    'name':name,
+                    'ledg' : ledg_grp,
+                    'ledg_all' : ledg_grp_all,
+                    'v' : v,
+                  }
+        
+        return render(request,'receipt_voucher.html',context)
+        
+     
+def create_receipt_voucher(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        
+
+        name=request.POST['type']
+                       
+
+        vouch = Voucher.objects.filter(voucher_type = 'Receipt',company = comp).get(voucher_name = name)
+
+        if request.method=='POST':
+
+            rid = request.POST.get('idlbl')
+            acc = request.POST.get('acc')
+            accnt = acc.split()
+            date1 = request.POST.get('date1')
+            amount=request.POST.get('total')
+            nrt = request.POST.get('narrate')
+            
+            particulars_id = request.POST.getlist("opt[]")
+            amounts = request.POST.getlist("amnt[]")
+
+            
+
+            
+        receipt_voucher(rid = rid,account = accnt[1], date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
+
+        rec_vouch=receipt_voucher.objects.get(rid=receipt_voucher.objects.all().last().rid)
+        
+        particulars = []
+        for i in particulars_id:
+            id = tally_ledger.objects.get(id = i)
+            particulars.append(id.name)
+
+
+        if len(particulars_id)==len(amounts) and particulars_id and amounts:
+               
+            particular=zip(particulars,particulars_id,amounts)
+            mapped=list(particular)
+            for m in mapped:
+                receipt_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], rec_voucher = rec_vouch)
+                
+                
+
+
+        return redirect('/list_receipt_voucher')
+
+
+def cur_balance(request):
+    i = request.GET.get('id')
+    ledger = tally_ledger.objects.values().filter(id = i)
+    data = list(ledger)
+    return JsonResponse(data, safe = False)
+
+
+def cur_balance_change(request):
+    
+    ac = request.GET.get('ac')
+    i = request.GET.get('curblnc')
+    j = request.GET.get('amount')
+    type = request.GET.get('curblnct')
+
+    if type == 'Dr':
+        v1 = int(i)- int(j)
+        if v1 < 0:
+            cur_type = 'Cr'
+            val = abs(v1)
+        else:
+            cur_type = 'Dr'
+            val = v1
+    else:
+        val = int(i) + int(j)
+        cur_type = 'Cr'
+
+    #print(val) 
+    #print(open_type)
+
+    ledger = tally_ledger.objects.get(id = ac)
+
+
+
+    ledger.current_blnc = val
+    ledger.current_blnc_type = cur_type
+    ledger.save()
+   
+    #print(ledger)
+    
+    context = {'val' : val,'cur_type': cur_type, 'ledger' : ledger }
+    
+    return render(request,'curbalance_change.html', context)
+
+def pcur_balance_change(request):
+    
+    ac = request.GET.get('pac')
+    i = request.GET.get('curblnc')
+    j = request.GET.get('amount')
+    type = request.GET.get('curblnct')
+    #print(type)
+    
+    if type == 'Cr':
+        v2 = int(i)- int(j)
+        if v2 < 0:
+            val = abs(v2)
+            cur_type = 'Dr'
+        else:
+            val = v2
+            cur_type = 'Cr'
+    else:
+        val = int(i) + int(j)
+        cur_type = 'Dr'
+
+    ledger = tally_ledger.objects.get(id = ac)
+
+    ledger.current_blnc = val
+    ledger.current_blnc_type = cur_type
+    ledger.save()
+    #print(ledger.current_blnc)
+
+    
+    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+
+def receipt_cur_balance_change(request):
+    
+    ac = request.GET.get('ac')
+    i = request.GET.get('curblnc')
+    j = request.GET.get('amount')
+    type = request.GET.get('curblnct')
+
+    if type == 'Cr':
+        v2 = int(i)- int(j)
+        if v2 < 0:
+            val = abs(v2)
+            cur_type = 'Dr'
+        else:
+            val = v2
+            cur_type = 'Cr'
+    else:
+        val = int(i) + int(j)
+        cur_type = 'Dr'
+        
+
+    ledger = tally_ledger.objects.get(id = ac)
+    
+    return render(request,'curbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+
+def receipt_pcur_balance_change(request):
+    
+    ac = request.GET.get('pac')
+    i = request.GET.get('curblnc')
+    j = request.GET.get('amount')
+    type = request.GET.get('curblnct')
+    if type == 'Dr':
+        v1 = int(i)- int(j)
+        if v1 < 0:
+            cur_type = 'Cr'
+            val = abs(v1)
+        else:
+            cur_type = 'Dr'
+            val = v1
+    else:
+        val = int(i) + int(j)
+        cur_type = 'Cr'
+    
+
+    ledger = tally_ledger.objects.get(id = ac)
+
+    #print(val)
+    #print(ledger)
+    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+
+def cheque_range(request):
+    
+    acname = request.GET.get('account_name')
+
+    data = []
+
+    cqrange = ledger_chequebook.objects.filter(ledger_name = acname).values() if ledger_chequebook.objects.filter(ledger_name = acname).exists() else None
+    start = 0 if cqrange is None else cqrange[0]['from_number']  
+    end = 0 if cqrange is None else cqrange[0]['to_number'] 
+    q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque').values('instno').last()
+    chqnum = 0 if q is None else q['instno']
+    #print(chqnum)
+    if chqnum < end:
+        chqnum = start if q is None else (int(q['instno']) + 1)
+    else:
+        chqnum = 0
+    
+    
+    data.append(start)
+    data.append(end)
+    data.append(chqnum)  
+    #print(chqnum)
+        
+    return JsonResponse(data,safe=False)
+
+def bank_transcation(request):
+    
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        vouch_name = request.POST.get('vouch_type')
+        partacc = request.POST.get('part')
+        bacc = request.POST.get('bacc')
+        t_type = request.POST.get('t_type')
+        instno = request.POST.get('instnum')
+        instdate = request.POST.get('instdate')
+        acnum = request.POST.get('efaccnum')
+        ifsc = request.POST.get('efifs')
+        bname = request.POST.get('efbank')
+        amount = request.POST.get('amount')
+
+        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
+
+        
+
+        if vouch_type.voucher_type == 'Payment':
+            bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
+                                transcation_type = t_type,instno = instno,instdate = instdate,
+                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+        elif vouch_type.voucher_type == 'Receipt':
+
+            bank_transcations(voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
+                                transcation_type = t_type,instno = instno,instdate = instdate,
+                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+
+        
+        return HttpResponse({"message": "success"})
+    
+
+
+#------------------------profit and loss updation----------------
+
+
+def stock_group2(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        if fmonths.objects.values().exists() is False:
+                #m = list(calendar.month_name)
+                m = ['January','February','March','April','May','June','July','August','September','October',
+                     'November','December']
+                for i in range(1,len(m)):
+                    f = fmonths()
+                    f.month_name = m[i]
+                    f.save()
+
+        comp = Companies.objects.get(id=uid)
+
+        group = CreateStockGrp.objects.filter(comp = comp).values()
+
+        sum = 0
+        for g in group:
+            item = stock_itemcreation.objects.filter(under_id = g['id'])
+            # print(item)
+            value= 0
+            for i in item:
+                value += int(i.value)
+            g['total'] = value
+
+            sum += value
+            
+        startdate = comp.fin_begin
+        enddate = date.today()
+    context = {
+                'company' : comp,
+                'group' : group,
+                'item' : item,
+                'value' : value,
+                'sum' : sum,
+                'startdate' : startdate,
+                'enddate' : enddate
+            }
+    
+    return render(request, 'opening_stock_summary.html', context)
+
+
+def profit_stock_group(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id=t_id)
+        group = CreateStockGrp.objects.get(id = pk,comp = comp)
+        item = stock_itemcreation.objects.filter(under_id = group.id).values()
+
+        value = sum = 0
+        for i in item:
+            
+            vouch = stock_item_voucher.objects.filter(item = i['id'])
+            total_qty = int(i['quantity'])
+            total_val = int(i['value'])
+
+            if vouch.exists():
+                
+                for v in vouch:
+                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                    in_val = 0 if v.inwards_val is None else v.inwards_val
+                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                    out_val = 0 if v.outwards_val is None else v.outwards_val
+                    total_qty += in_qty - out_qty
+                    total_val += in_val - out_val
+                    i['total_qty'] = total_qty 
+                    i['total_val'] = total_val
+
+                
+            else:
+                i['total_qty'] = total_qty 
+                i['total_val'] = total_val
+            
+            value += total_val
+
+            sum += int(i['value'])
+
+        startdate = comp.fin_begin
+        enddate = date.today
+
+    context = {
+            'company' : comp,
+            'group' : group,
+            'item' : item,
+            'value' : value,
+            'sum' : sum,
+            'total_qty': total_qty,
+            'total_val' :total_val,
+            'startdate' : startdate,
+            'enddate' : enddate
+        }
+
+    return render(request, 'profit_stock_group_summary.html',context)
+
+
+    #-----------------------end---profit and loss updation----------------
+
+    
+
+    #------stock summary---------------
+
+def stock_summary(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        if fmonths.objects.values().exists() is False:
+            #m = list(calendar.month_name)
+            m = ['January','February','March','April','May','June','July','August','September','October',
+                 'November','December']
+            for i in range(1,len(m)):
+                f = fmonths()
+                f.month_name = m[i]
+                f.save()
+
+        comp = Companies.objects.get(id=t_id)
+        group = CreateStockGrp.objects.filter(comp = comp).values()
+
+        sum = 0
+        for g in group:
+            item = stock_itemcreation.objects.filter(under_id = g['id'])
+
+            value = 0
+            for i in item:
+                
+                vouch = stock_item_voucher.objects.filter(item = i.id)
+                total_val = int(i.value)
+                print(vouch)
+                for v in vouch:
+                    in_val = 0 if v.inwards_val is None else v.inwards_val
+                    out_val = 0 if v.outwards_val is None else v.outwards_val
+                    total_val += in_val - out_val
+
+                value += total_val
+                g['total'] = value
+            sum += value
+            
+        startdate = comp.fin_begin
+        enddate = date.today()
+    context = {
+                'company' : comp,
+                'group' : group,
+                'item' : item,
+                'value' : sum,
+                'startdate' : startdate,
+                'enddate' : enddate
+            }
+    
+    return render(request, 'stock_summary.html', context)
+
+
+def stock_group_summary(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id=t_id)
+        group = CreateStockGrp.objects.get(id = pk,comp = comp)
+        item = stock_itemcreation.objects.filter(under_id = group.id).values()
+
+        value = 0
+        for i in item:
+            
+            vouch = stock_item_voucher.objects.filter(item_id = i['id'])
+            total_qty = int(i['quantity'])
+            total_val = int(i['value'])
+            if vouch.exists():
+                
+                for v in vouch:
+                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                    in_val = 0 if v.inwards_val is None else v.inwards_val
+                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                    out_val = 0 if v.outwards_val is None else v.outwards_val
+                    total_qty += in_qty - out_qty
+                    total_val += in_val - out_val
+                    i['total_qty'] = total_qty 
+                    i['total_val'] = total_val
+
+                
+            else:
+                i['total_qty'] = total_qty 
+                i['total_val'] = total_val
+            
+            value += total_val
+
+            startdate = comp.fin_begin
+            enddate = date.today
+        
+
+    context = {
+            'company' : comp,
+            'group' : group,
+            'item' : item,
+            'value' : value,
+            'total_qty': total_qty,
+            'total_val' :total_val,
+            'startdate' : startdate,
+            'enddate' : enddate
+        }
+
+    return render(request, 'stock_group_summary.html',context)
+
+def stock_item_monthly_summary(request,pk):
+        
+        if 't_id' in request.session:
+            if request.session.has_key('t_id'):
+                t_id = request.session['t_id']
+            else:
+                return redirect('/')
+
+        comp = Companies.objects.get(id=t_id)
+   
+        months = fmonths.objects.values()
+        item = stock_itemcreation.objects.get(id=pk)
+        vouch = stock_item_voucher.objects.filter(item_id = item.id,company = comp)
+
+        invouch = Voucher.objects.filter(voucher_type__in = ['Debit_Note','Purchase']).values('voucher_name')
+        outvouch = Voucher.objects.filter(voucher_type__in = ['Credit_Note','Sales']).values('voucher_name')
+
+        invouch_type = []
+        outvouch_type = []
+        for i in invouch:
+            invouch_type.append(i['voucher_name'])
+
+        for i in outvouch:
+            outvouch_type.append(i['voucher_name'])
+
+        beg_date = comp.fin_begin
+
+        if vouch.exists():
+            v = vouch.latest('date')
+            new_date = (v.date)
+        else:
+            new_date = comp.fin_begin
+
+        total_inqty = total_inval = total_outqty = total_outval = 0
+        sum_in_qty = sum_in_val = sum_out_qty = sum_out_val = 0
+        in_qty = in_val = out_qty = out_val =0
+        total_qty = int(item.quantity)
+        total_val = int(item.value)
+
+        for mnth in months:
+            
+            if vouch.exists():
+
+                for v in vouch:
+                    if v.month_id == mnth['id']:
+                        
+                        in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                        in_val = 0 if v.inwards_val is None else v.inwards_val
+                        out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                        out_val = 0 if v.outwards_val is None else v.outwards_val
+                        
+                        total_inqty += in_qty
+                        total_inval += in_val
+                        total_outqty += out_qty
+                        total_outval += out_val
+
+                        if v.Voucher_type in  invouch_type :
+
+                            mnth['total_inqty'] = total_inqty
+                            mnth['total_inval'] = total_inval
+
+                        else:
+                            mnth['total_outqty'] = total_outqty
+                            mnth['total_outval'] = total_outval
+                        
+                        total_qty += in_qty - out_qty
+                        total_val += in_val - out_val
+
+                        mnth['total_qty'] = total_qty
+                        mnth['total_val'] = total_val
+
+                        sum_in_qty += in_qty
+                        sum_in_val += in_val
+                        sum_out_qty += out_qty
+                        sum_out_val += out_val  
+
+                total_inqty = total_inval = total_outqty = total_outval = 0
+            
+        last_qty = total_qty
+        last_val = total_val
+
+        
+        context = {
+                    'company' : comp,
+                    'months' : months,
+                    'item' : item,
+                    'voucher' : vouch,
+                    'tot_qty' :last_qty,
+                    'tot_val' : last_val,
+                    'sum_in_qty' : sum_in_qty,
+                    'sum_in_val' : sum_in_val,
+                    'sum_out_qty' : sum_out_qty,
+                    'sum_out_val' : sum_out_val,
+                    'beg_date' : beg_date,
+                    'new_date' : new_date,
+                    
+                }
+
+        return render(request,'stock_item_monthly_summary.html',context)
+
+def stock_item_vouchers(request,pk,id):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        comp = Companies.objects.get(id = t_id)
+        
+        item = stock_itemcreation.objects.get(id = pk)
+        mnth = fmonths.objects.get(id = id)
+
+        voucher = stock_item_voucher.objects.filter(item_id = item.id, company = comp)
+
+        for v in voucher:
+        
+            v_month = v.date.strftime('%B')
+            m_id = fmonths.objects.get(month_name = v_month)
+
+            v.month = m_id
+            v.save()
+
+        vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id).values()
+        qty = sum_in_qty = int(item.quantity)
+        val = sum_in_val = int(item.value)
+
+        sum_out_qty = sum_out_val = beg_date = end_date= 0
+
+        for v in vouch:    
+
+            in_qty = 0 if v['inwards_qty'] is None else v['inwards_qty']
+            in_val = 0 if v['inwards_val'] is None else v['inwards_val']
+            out_qty = 0 if v['outwards_qty'] is None else v['outwards_qty']
+            out_val = 0 if v['outwards_val'] is None else v['outwards_val']
+
+            qty += in_qty-out_qty
+            val += in_val-out_val
+
+            v['closing_qty'] = qty
+            v['closing_val'] = val
+
+            sum_in_qty += in_qty
+            sum_in_val += in_val
+            sum_out_qty += out_qty
+            sum_out_val += out_val
+            
+
+            vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
+            v['vouch_type'] = vouch_type
+
+            clsval = stock_item_voucher.objects.get(id = v['id'],company = comp)
+
+            clsval.closing_qty = qty
+            clsval.closing_val = val
+            clsval.save() 
+
+        if vouch.exists():
+
+            m =  int(datetime.strptime(mnth.month_name, '%B').month)
+            
+            # print(int(datetime.strftime(v['date'],'%Y')))
+            y = int(datetime.strftime(v['date'],'%Y'))         #int(v.date.strftime('%Y'))
+            beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
+
+            if mnth.month_name != 'December':
+                m2 =  int(datetime.strptime(mnth.month_name, '%B').month)+1
+            else:
+                m2 = 10
+                y = int(datetime.strftime(v['date'],'%Y'))     #int(v.date.strftime('%Y'))
+            end_date = (datetime(y,m2,1) - timedelta(days=1)).date().strftime('%d-%b-%y')
+
+        else:
+            m =  int(datetime.strptime(mnth.month_name, '%B').month)
+            y = int(datetime.strftime(date.today(),'%Y'))
+            beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
+
+            if mnth.month_name != 'December':
+                m2 =  int(datetime.strptime(mnth.month_name, '%B').month)+1
+            else:
+                m2 = 10
+                y = int(datetime.strftime(date.today(),'%Y'))     #int(v.date.strftime('%Y'))
+            end_date = (datetime(y,m2,1) - timedelta(days=1)).date().strftime('%d-%b-%y')
+
+        context = {
+                    'company' : comp,
+                    'item' : item,
+                    'voucher' : vouch,
+                    'mnth' : mnth,
+                    'sum_in_qty' : sum_in_qty,
+                    'sum_in_val' : sum_in_val,
+                    'sum_out_qty' : sum_out_qty,
+                    'sum_out_val' : sum_out_val,
+                    'sum_closing_qty': qty,
+                    'sum_closing_val':val, 
+                    'beg_date' : beg_date, 
+                    'end_date' : end_date
+                  }
+    
+        return render(request,'stock_item_vouchers.html',context)
+
+def alter_credit_voucher(request,pk):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+
+        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+
+        ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
+        item = stock_itemcreation.objects.all() 
+        godown = Godown_Items.objects.filter(comp=cmp1) 
+
+        cred_voucher = credit_note.objects.get(screditid = pk)
+        cred_item = credit_item.objects.filter(scredit_id = pk)
+
+        vouch = Voucher.objects.get(id = cred_voucher.voucher_id)
+
+        
+        context = {
+            'company' : cmp1,
+            'item':item,
+            'ldg':ldg,
+            "ldg1":ldg1,
+            "godown":godown,
+            'cred_voucher' : cred_voucher,
+            'cred_item' :cred_item,
+            'vouch' : vouch,
+        }
+    return render(request,'alter_credit_note.html',context )
+
+def alter_credit_receipt_details(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+
+        id = request.GET.get('id')
+
+        cred= credit_note.objects.get(screditid = id)
+            
+        cred.tracking_no = request.GET.get('track_no')
+        
+        cred.dis_doc_no = request.GET.get('dis_doc_no')
+        cred.dis_thr = request.GET.get('dis_through')
+        cred.destination = request.GET.get('dis_desti')
+        cred.carrie_nmag = request.GET.get('car_nm_ag')
+        cred.billlr_no = request.GET.get('bil_lading')
+        cred.mt_vh_no = request.GET.get('mvd_no')
+        cred.date = request.GET.get('date_dis')
+        cred.inv_no = request.GET.get('inv_no')
+        cred.inv_date = request.GET.get('inv_date')
+        cred.comp = cmp1
+        
+        cred.save()
+
+        print(credit_note.objects.get(screditid = id).tracking_no)
+    return HttpResponse({"message": "success"})
+
+def alter_credit_party_details(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        id = request.GET.get('id')
+        cred= credit_note.objects.get(screditid = id)
+
+        cred.address = request.GET.get('address')
+        cred.state = request.GET.get('state')
+        cred.mname = request.GET.get('mname')
+        cred.country = request.GET.get('country')
+        cred.reg_type = request.GET.get('reg_type')
+        cred.gst_uin = request.GET.get('gst_uin')
+        cred.pl_suply = request.GET.get('pl_suply')
+        cred.save()
+
+    return HttpResponse({"message": "success"})
+
+
+def alter_credit_note(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+     
+        cred= credit_note.objects.get(screditid = pk)
+        # cred_item = credit_item.objects.filter(scredit_id = pk)
+        
+        vouch = Voucher.objects.get(id = cred.voucher_id,company = cmp1)
+
+        if request.method=='POST':
+
+            cust = request.POST.get('customer')
+            cdate = request.POST.get('cdate')
+            ledg = request.POST.get('ledger_account')
+            subtotal = request.POST.get('subtotal')
+            note = request.POST.get('Note')
+            quantity = request.POST.get('quantity')
+            grandtotal = request.POST.get('grandtotal')
+
+            cred.customer = cust
+            cred.creditdate = cdate
+            cred.ledger_acc = ledg
+            cred.subtotal = subtotal
+            cred.note = note
+            cred.quantity = quantity
+            cred.grandtotal = grandtotal
+            cred.voucher = vouch
+            cred.save()
+
+            ids = request.POST.getlist('itemid[]')
+            items = request.POST.getlist('items[]')
+            quantity = request.POST.getlist('quantity[]')
+            price = request.POST.getlist('price[]')
+            total = request.POST.getlist('total[]')
+
+            mapped=zip(items,quantity,price,total,ids)
+            mapped=list(mapped)
+            print(mapped)
+
+            for ele in mapped:
+
+                credi = credit_item.objects.filter(scredit_id = pk).get(id = ele[4])
+                print(credi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = credi.id)
+                print(ele[4])
+                
+                credi.items = ele[0]
+                credi.quantity = ele[1]
+                credi.price = ele[2]
+                credi.total = ele[3]
+                credi.scredit = cred
+
+                credi.save()
+                    
+                item = stock_itemcreation.objects.get(name= ele[0])
+                grp = CreateStockGrp.objects.get(id = item.under_id, comp = cmp1)
+                    
+                outwards_val =int(ele[1]) * int(ele[2]) 
+                
+                stockitm.company = cmp1
+                stockitm.group = grp
+                stockitm.item = item
+                stockitm.date = cdate
+                stockitm.Particulars = cust
+                stockitm.ledger_account = ledg
+                stockitm.Voucher_type = vouch.voucher_name
+                stockitm.Voucher_no= cred.screditid
+                stockitm.rate = ele[2]
+                stockitm.per = item.per
+                stockitm.outwards_qty = ele[1]
+                stockitm.outwards_val = outwards_val
+                stockitm.voucher_id = cred.screditid
+                stockitm.voucher_item_id = credi.id
+
+                stockitm.save()
+
+            return redirect('credit_notess')
+
+    return redirect('/credit_notess')
+
+def alter_debit_voucher(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+
+        deb_voucher = debit_note.objects.get(sdebitid = pk)
+        deb_item = debit_item.objects.filter(sdebit_id = pk)
+        
+        ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
+    
+        ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
+        item = stock_itemcreation.objects.all() 
+        godown = Godown_Items.objects.filter(comp=cmp1) 
+        
+        vouch = Voucher.objects.get(id = deb_voucher.voucher_id)
+
+        context = {
+            'item':item,
+            'ldg':ldg,
+            "ldg1":ldg1,
+            "godown":godown,
+            'vouch' : vouch,
+            'company' : cmp1,
+            'deb_voucher' : deb_voucher,
+            'deb_item' :deb_item,
+        }
+    return render(request,'alter_debit_note.html',context )
+
+def alter_debit_receipt_details(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+        id = request.GET.get('id')
+
+        deb= debit_note.objects.get(sdebitid = id)
+        
+        deb.tracking_no = request.GET.get('track_no')
+        deb.dis_doc_no = request.GET.get('dis_doc_no')
+        deb.dis_thr = request.GET.get('dis_through')
+        deb.destination = request.GET.get('dis_desti')
+        deb.carrie_nmag = request.GET.get('car_nm_ag')
+        deb.billlr_no = request.GET.get('bil_lading')
+        deb.mt_vh_no = request.GET.get('mvd_no')
+        deb.date = request.GET.get('date_dis')
+        deb.inv_no = request.GET.get('inv_no')
+        deb.inv_date = request.GET.get('inv_date')
+        deb.comp = cmp1
+        deb.save()
+            
+    return HttpResponse({"message": "success"})
+
+def alter_debit_party_details(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        id = request.GET.get('id')
+
+        deb= debit_note.objects.get(sdebitid = id)
+
+            
+        deb.address = request.GET.get('address')
+        deb.state = request.GET.get('state')
+        deb.mname = request.GET.get('mname')
+        deb.country = request.GET.get('country')
+        deb.reg_type = request.GET.get('reg_type')
+        deb.gst_uin = request.GET.get('gst_uin')
+        deb.pl_suply = request.GET.get('pl_suply')
+        deb.save()
+
+    return HttpResponse({"message": "success"})
+
+
+def alter_debit_note(request,pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id']) 
+
+        deb= debit_note.objects.get(sdebitid = pk)
+        # deb_item = debit_item.objects.filter(sdebit_id = pk)
+
+        vouch = Voucher.objects.get(id = deb.voucher_id,company = cmp1)
+
+        if request.method=='POST':
+
+            cust = request.POST.get('customer')
+            print(cust)
+            ddate = request.POST.get('ddate')
+            ledg = request.POST.get('ledger_account')
+            subtotal = request.POST.get('subtotal')
+            note = request.POST.get('Note')
+            quantity = request.POST.get('quantity')
+            grandtotal = request.POST.get('grandtotal')
+
+            deb.customer = cust
+            deb.debitdate = ddate
+            deb.ledger_acc = ledg
+            deb.subtotal = subtotal
+            deb.note = note
+            deb.quantity = quantity
+            deb.grandtotal = grandtotal
+            deb.voucher = vouch
+            deb.save()
+
+
+            ids = request.POST.getlist('itemid[]')
+            items = request.POST.getlist('items[]')
+            quantity = request.POST.getlist('quantity[]')
+            price = request.POST.getlist('price[]')
+            total = request.POST.getlist('total[]')
+
+            mapped=zip(items,quantity,price,total,ids)
+            mapped=list(mapped)
+            print(mapped)
+
+            for ele in mapped:
+
+                debi = debit_item.objects.filter(sdebit_id = pk).get(id = ele[4])
+                print(debi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id)
+                print(ele[4])
+
+                debi.items = ele[0]
+                debi.quantity = ele[1]
+                debi.price = ele[2]
+                debi.total = ele[3]
+                debi.sdebit = deb
+
+                debi.save()
+                    
+                item = stock_itemcreation.objects.get(name= ele[0])
+                grp = CreateStockGrp.objects.get(id = item.under_id,comp = cmp1)
+                    
+                inwards_val =int(ele[1]) * int(ele[2]) 
+                
+                stockitm.company = cmp1
+                stockitm.group = grp
+                stockitm.item = item
+                stockitm.date = ddate
+                stockitm.Particulars = cust
+                stockitm.ledger_account = ledg
+                stockitm.Voucher_type = vouch.voucher_name
+                stockitm.Voucher_no= deb.sdebitid
+                stockitm.rate = ele[2]
+                stockitm.per = item.per
+                stockitm.inwards_qty = ele[1]
+                stockitm.inwards_val = inwards_val
+                stockitm.voucher_id = deb.sdebitid
+                stockitm.voucher_item_id = debi.id
+
+                stockitm.save()
+
+
+        return redirect('debits_note')
+
+    return redirect('/debits_note')
+
+
+
+def get_sl_det1(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+        cmp1 = Companies.objects.get(id=request.session['t_id'])
+        
+        ledger_account = request.GET.get('ledger_account')
+        customer = request.GET.get('customer')
+      
+        items=tally_ledger.objects.get(company=cmp1,name=ledger_account)
+        item1=tally_ledger.objects.get(company=cmp1,name=customer)
+     
+        opening_blnc = items.opening_blnc
+        opening_blnc_type = items.opening_blnc_type
+        bal_amount=str(opening_blnc)+ ' ' +str(opening_blnc_type)
+
+        opening_blnc1 = item1.opening_blnc
+        opening_blnc_type1 = item1.opening_blnc_type
+        cust_bal_amount=str(opening_blnc1)+ ' ' +str(opening_blnc_type1)
+        
+        
+        
+
+        return JsonResponse({"status":" not","bal_amount":bal_amount,'cust_bal_amount': cust_bal_amount})
+    return redirect('/')
+
+
+
+# -----end---stock summary----------
+
+
+         
+   
