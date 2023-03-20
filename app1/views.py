@@ -3433,7 +3433,7 @@ def companycreate(request):
         n.fin_end=out.date()
         n.save()
 
-        #---- default vouchers--
+        #--Nithya-- default vouchers--
 
         voucher = Voucher()
         voucher.company = n
@@ -3499,8 +3499,25 @@ def companycreate(request):
         voucher.track_purchase = 'No'
         voucher.prnt_VA_save = 'No'
         voucher.save()
+
+        voucher = Voucher()
+        voucher.company = n
+        voucher.voucher_name = 'Contra'
+        voucher.voucher_type = 'Contra'
+        voucher.abbreviation = 'Ctra'
+        voucher.voucherActivate = 'No'
+        voucher.voucherNumber = 'Automatic'
+        voucher.voucherEffective = 'No'
+        voucher.transaction = 'No'
+        voucher.make_optional = 'No'
+        voucher.voucherNarration = 'Yes'
+        voucher.provideNarration = 'No'
+        voucher.track_purchase = 'No'
+        voucher.prnt_VA_save = 'No'
+        voucher.save()
         
         #-- default stock group-Primary
+
         stockgrp = CreateStockGrp()
         stockgrp.comp = n
         stockgrp.name='Primary'
@@ -3508,7 +3525,18 @@ def companycreate(request):
         stockgrp.under_name='Primary'
         stockgrp.quantities='No'
         stockgrp.save()
-        
+
+
+        #----fmonth table values--
+
+        if fmonths.objects.values().exists() is False:
+            m = ['January','February','March','April','May','June','July','August','September','October',
+                 'November','December']
+            for i in range(1,len(m)):
+                f = fmonths()
+                f.month_name = m[i]
+                f.save()
+
         
 
         subject = 'Welcome Tally Prime'
@@ -5416,13 +5444,15 @@ def stock_groupcreation(request):
         else:
             return redirect('/')
         tally = Companies.objects.get(id=t_id)
+        print(tally)
         und=CreateStockGrp.objects.filter(comp = tally)
+        print(und)
         if request.method=='POST':
             name=request.POST['name']
             alias=request.POST['alias']
             under_name=request.POST['under_name']
             quantities=request.POST['quantities']
-            stockgrp=CreateStockGrp(name=name,alias=alias,under_name=under_name,quantities=quantities)
+            stockgrp=CreateStockGrp(comp = tally,name=name,alias=alias,under_name=under_name,quantities=quantities)
             stockgrp.save()
             return redirect('stock_groupcreation')
         return render(request,'stock_group_1.html',{'und':und,'tally':tally})
@@ -5556,7 +5586,7 @@ def stock_items_creation(request):
             t_id = request.session['t_id']
         else:
             return redirect('/')
-        tally = Companies.objects.filter(id=t_id)
+        tally = Companies.objects.get(id=t_id)
         grp=CreateStockGrp.objects.filter(comp = tally)
         unt=unit_compound.objects.all()
         u=unit_simple.objects.all()
@@ -5572,15 +5602,15 @@ def stock_items_creation(request):
             set_alter=request.POST['set_alter']
             typ_sply=request.POST['typ_sply']
             rate_of_duty=request.POST['rate_of_duty']
-            quantity=request.POST['quantity']
-            rate=request.POST['rate']
-            per=request.POST['per']
-            value=request.POST['value']
+            quantity=0 if request.POST['quantity'] is '' else request.POST['quantity']
+            rate=0 if request.POST['rate'] is '' else request.POST['rate']
+            per=0 if request.POST['per'] is '' else request.POST['per']
+            value= 0 if request.POST['value'] is '' else request.POST['value']
             
-            i = CreateStockGrp.objects.get(name = under)
+            i = CreateStockGrp.objects.get(name = under,comp = tally)
 
             
-            crt=stock_itemcreation(name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            crt=stock_itemcreation(company = tally, name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value)
             crt.save()
             return redirect('load_stock_item_creation')
@@ -10735,31 +10765,44 @@ def alter_stockitem(request):
 
 
 def alter_stockitem_edit(request,pk):
-    std=stock_itemcreation.objects.get(id=pk)
-    u=unit_simple.objects.all()
-    u2=unit_compound.objects.all()
-    # std2=CreateGodown.objects.get(id=pk)
-    gd=CreateGodown.objects.all()
-    grp=CreateStockGrp.objects.all()
-    
-    if request.method=='POST':
-        std.name=request.POST['name']
-        std.under_id=request.POST['under']
-        std.units=request.POST['units']
-        std.alias=request.POST['alias']
-        std.batches=request.POST['batches']
-        std.trackdate=request.POST['cost_tracking']
-        std.gst_applicable=request.POST['gst_applicable']
-        std.typ_sply=request.POST['typ_sply']
-        std.set_alter=request.POST['set_alter']
-        std.rate_of_duty=request.POST['rate_of_duty']
-        std.quantity=request.POST['quantity']
-        std.rate=request.POST['rate']
-        std.per=request.POST['rate']
-        std.value=request.POST['value'] 
-        std.save()
-        return redirect('alter_stockitem')
-    return render(request,'alter_stockitem_edit.html',{'std':std,'u':u,'u2':u2,'gd':gd,'grp':grp}) 
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
+
+        std=stock_itemcreation.objects.get(id=pk)
+        u=unit_simple.objects.all()
+        u2=unit_compound.objects.all()
+        # std2=CreateGodown.objects.get(id=pk)
+        gd=CreateGodown.objects.all()
+        grp=CreateStockGrp.objects.all()
+        
+        if request.method=='POST':
+
+            g = CreateStockGrp.objects.get(name = request.POST['under'].strip(),comp = comp)
+
+            std.name=request.POST['name']
+            std.under = g
+            std.units=request.POST['units']
+            std.alias=request.POST['alias']
+            std.batches=request.POST['batches']
+            std.trackdate=request.POST['cost_tracking']
+            std.gst_applicable=request.POST['gst_applicable']
+            std.typ_sply=request.POST['typ_sply']
+            std.set_alter=request.POST['set_alter']
+            std.rate_of_duty=request.POST['rate_of_duty']
+            std.quantity=request.POST['quantity']
+            std.rate=request.POST['rate']
+            std.per=request.POST['rate']
+            std.value=request.POST['value'] 
+
+            std.save()
+            return redirect('alter_stockitem')
+        return render(request,'alter_stockitem_edit.html',{'std':std,'u':u,'u2':u2,'gd':gd,'grp':grp}) 
 
 
 
@@ -11075,9 +11118,17 @@ def stock_voucher(request,pk):
 
 
 def profit(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            uid = request.session['t_id']
+        else:
+            return redirect('/')
+    comp = Companies.objects.get(id=request.session['t_id'])
+
     balance=tally_ledger.objects.all()
     balance_py=create_payhead.objects.all()
-    balance_group=stock_itemcreation.objects.all()
+    balance_group=stock_itemcreation.objects.filter(company = comp)
     total_grp=0
     total_direct=0
     total=0
@@ -11569,7 +11620,7 @@ def credit_notess(request):
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
     
     ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
-    item = stock_itemcreation.objects.all() 
+    item = stock_itemcreation.objects.filter(company = cmp1)
     godown = Godown_Items.objects.filter(comp=cmp1) 
     context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':name} 
     return render(request,'credit_note.html',context)
@@ -11726,7 +11777,7 @@ def create_credit(request):
             cust = request.POST['customer']
             ledg = request.POST['ledger_account']
             # print(name)
-            vouch = Voucher.objects.filter(voucher_type = 'Credit_Note').get(voucher_name = name)
+            vouch = Voucher.objects.filter(voucher_type = 'Credit_Note',company = cmp1).get(voucher_name = name)
             
             created = credit_note.objects.filter(screditid=idss.screditid).update(voucher = vouch,customer = cust,creditdate=date.today(),ledger_acc=ledg,subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
@@ -12213,13 +12264,13 @@ def stock_items_creation_crd(request):
             per=request.POST['per']
             value=request.POST['value']
 
-            i = CreateStockGrp.objects.get(name = under)
+            i = CreateStockGrp.objects.get(name = under,comp = tally)
 
             
             gd=Godown_Items.objects.all().last()
             gsd=Godown_Items.objects.get(id=gd.id)
 
-            crt=stock_itemcreation(name=nm,alias=alias,under= i ,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            crt=stock_itemcreation(company = tally,name=nm,alias=alias,under= i ,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value,godown=gsd)
             crt.save()
             return redirect('credit_notess')
@@ -12375,14 +12426,10 @@ def debits_note(request):
     ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
     
     ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
-    item = stock_itemcreation.objects.all() 
+    item = stock_itemcreation.objects.filter(company = cmp1)
     godown = Godown_Items.objects.filter(comp=cmp1) 
     context = {'cmp1': cmp1,'item':item,'ldg':ldg,"ldg1":ldg1,"crd_num":crd_num,"financial_year":financial_year,"dt_nm":dt_nm,"godown":godown, "setup_no":setup_no,"setup_nar":setup_nar,'now':now,'name':name} 
     return render(request,'debit_note.html',context)
-
-
-
-
 
 
 def crt_ledg_dbt(request):
@@ -12424,7 +12471,7 @@ def create_debit(request):
             cust = request.POST['customer']
             ledg = request.POST['ledger_account']
             # print(name)
-            vouch = Voucher.objects.filter(voucher_type = 'Debit_Note').get(voucher_name = name)
+            vouch = Voucher.objects.filter(voucher_type = 'Debit_Note',company = cmp1).get(voucher_name = name)
          
             created = debit_note.objects.filter(sdebitid=idss.sdebitid).update(voucher = vouch,customer = cust,debitdate=date.today(),ledger_acc=ledg,subtotal=request.POST['subtotal'],note=notes,quantity=request.POST['quantity'],grandtotal=request.POST['grandtotal'],)
 
@@ -12499,10 +12546,6 @@ def create_debit(request):
         return redirect('debits_note')
     return redirect('/') 
    
-
-
-
-
 
 def create_ledger_debt(request):
     if 't_id' in request.session:
@@ -12975,13 +13018,13 @@ def stock_items_creation_dbt(request):
             per=request.POST['per']
             value=request.POST['value']
 
-            i = CreateStockGrp.objects.get(name = under)
+            i = CreateStockGrp.objects.get(name = under,comp = tally)
 
             
             gd=Godown_Items.objects.all().last()
             gsd=Godown_Items.objects.get(id=gd.id)
 
-            crt=stock_itemcreation(name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
+            crt=stock_itemcreation(company = tally,name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value,godown=gsd)
             crt.save()
             return redirect('debits_note')
@@ -13699,43 +13742,43 @@ def stock_group2(request):
         else:
             return redirect('/')
         
-        if fmonths.objects.values().exists() is False:
-                #m = list(calendar.month_name)
-                m = ['January','February','March','April','May','June','July','August','September','October',
-                     'November','December']
-                for i in range(1,len(m)):
-                    f = fmonths()
-                    f.month_name = m[i]
-                    f.save()
+        # if fmonths.objects.values().exists() is False:
+        #         #m = list(calendar.month_name)
+        #         m = ['January','February','March','April','May','June','July','August','September','October',
+        #              'November','December']
+        #         for i in range(1,len(m)):
+        #             f = fmonths()
+        #             f.month_name = m[i]
+        #             f.save()
 
         comp = Companies.objects.get(id=uid)
 
-        group = CreateStockGrp.objects.filter(comp = comp).values()
+        group = CreateStockGrp.objects.filter(comp = comp).values().exclude(name = 'Primary')
 
-        sum = 0
+        sum = item = tot = 0
         for g in group:
-            item = stock_itemcreation.objects.filter(under_id = g['id'])
+            item = stock_itemcreation.objects.filter(under_id = g['id'],company = comp)
             # print(item)
             value= 0
             for i in item:
                 value += int(i.value)
             g['total'] = value
-
+            tot = value
             sum += value
             
         startdate = comp.fin_begin
         enddate = date.today()
-    context = {
-                'company' : comp,
-                'group' : group,
-                'item' : item,
-                'value' : value,
-                'sum' : sum,
-                'startdate' : startdate,
-                'enddate' : enddate
-            }
-    
-    return render(request, 'opening_stock_summary.html', context)
+        context = {
+                    'company' : comp,
+                    'group' : group,
+                    'item' : item,
+                    'value' : tot,
+                    'sum' : sum,
+                    'startdate' : startdate,
+                    'enddate' : enddate
+                }
+        
+        return render(request, 'opening_stock_summary.html', context)
 
 
 def profit_stock_group(request,pk):
@@ -13748,7 +13791,7 @@ def profit_stock_group(request,pk):
 
         comp = Companies.objects.get(id=t_id)
         group = CreateStockGrp.objects.get(id = pk,comp = comp)
-        item = stock_itemcreation.objects.filter(under_id = group.id).values()
+        item = stock_itemcreation.objects.filter(under_id = group.id,company = comp).values()
 
         value = sum = 0
         for i in item:
@@ -13757,22 +13800,22 @@ def profit_stock_group(request,pk):
             total_qty = int(i['quantity'])
             total_val = int(i['value'])
 
-            if vouch.exists():
+            # if vouch.exists():
                 
-                for v in vouch:
-                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-                    in_val = 0 if v.inwards_val is None else v.inwards_val
-                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-                    out_val = 0 if v.outwards_val is None else v.outwards_val
-                    total_qty += in_qty - out_qty
-                    total_val += in_val - out_val
-                    i['total_qty'] = total_qty 
-                    i['total_val'] = total_val
-
-                
-            else:
+            for v in vouch:
+                in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                in_val = 0 if v.inwards_val is None else v.inwards_val
+                out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                out_val = 0 if v.outwards_val is None else v.outwards_val
+                total_qty += in_qty - out_qty
+                total_val += in_val - out_val
                 i['total_qty'] = total_qty 
                 i['total_val'] = total_val
+
+                
+            # else:
+            #     i['total_qty'] = total_qty 
+            #     i['total_val'] = total_val
             
             value += total_val
 
@@ -13781,19 +13824,19 @@ def profit_stock_group(request,pk):
         startdate = comp.fin_begin
         enddate = date.today
 
-    context = {
-            'company' : comp,
-            'group' : group,
-            'item' : item,
-            'value' : value,
-            'sum' : sum,
-            'total_qty': total_qty,
-            'total_val' :total_val,
-            'startdate' : startdate,
-            'enddate' : enddate
-        }
+        context = {
+                'company' : comp,
+                'group' : group,
+                'item' : item,
+                'value' : value,
+                'sum' : sum,
+                # 'total_qty': total_qty,
+                # 'total_val' :total_val,
+                'startdate' : startdate,
+                'enddate' : enddate
+            }
 
-    return render(request, 'profit_stock_group_summary.html',context)
+        return render(request, 'profit_stock_group_summary.html',context)
 
 
     #-----------------------end---profit and loss updation----------------
@@ -13810,28 +13853,32 @@ def stock_summary(request):
         else:
             return redirect('/')
         
-        if fmonths.objects.values().exists() is False:
-            #m = list(calendar.month_name)
-            m = ['January','February','March','April','May','June','July','August','September','October',
-                 'November','December']
-            for i in range(1,len(m)):
-                f = fmonths()
-                f.month_name = m[i]
-                f.save()
+        # if fmonths.objects.values().exists() is False:
+        #     #m = list(calendar.month_name)
+        #     m = ['January','February','March','April','May','June','July','August','September','October',
+        #          'November','December']
+        #     for i in range(1,len(m)):
+        #         f = fmonths()
+        #         f.month_name = m[i]
+        #         f.save()
 
         comp = Companies.objects.get(id=t_id)
-        group = CreateStockGrp.objects.filter(comp = comp).values()
+        # if CreateStockGrp.objects.get(name = 'Primary'):
+        #     group = CreateStockGrp.objects.filter(comp = comp).values()
+        # else:
+        group = CreateStockGrp.objects.filter(comp = comp).values().exclude(name = 'Primary')
 
-        sum = 0
+        sum = item = 0
         for g in group:
-            item = stock_itemcreation.objects.filter(under_id = g['id'])
+
+            item = stock_itemcreation.objects.filter(under_id = g['id'],company = comp)
 
             value = 0
             for i in item:
                 
                 vouch = stock_item_voucher.objects.filter(item = i.id)
                 total_val = int(i.value)
-                print(vouch)
+
                 for v in vouch:
                     in_val = 0 if v.inwards_val is None else v.inwards_val
                     out_val = 0 if v.outwards_val is None else v.outwards_val
@@ -13865,7 +13912,7 @@ def stock_group_summary(request,pk):
 
         comp = Companies.objects.get(id=t_id)
         group = CreateStockGrp.objects.get(id = pk,comp = comp)
-        item = stock_itemcreation.objects.filter(under_id = group.id).values()
+        item = stock_itemcreation.objects.filter(under_id = group.id,company = comp).values()
 
         value = 0
         for i in item:
@@ -13873,41 +13920,39 @@ def stock_group_summary(request,pk):
             vouch = stock_item_voucher.objects.filter(item_id = i['id'])
             total_qty = int(i['quantity'])
             total_val = int(i['value'])
-            if vouch.exists():
+            # if vouch.exists():
                 
-                for v in vouch:
-                    in_qty = 0 if v.inwards_qty is None else v.inwards_qty
-                    in_val = 0 if v.inwards_val is None else v.inwards_val
-                    out_qty = 0 if v.outwards_qty is None else v.outwards_qty
-                    out_val = 0 if v.outwards_val is None else v.outwards_val
-                    total_qty += in_qty - out_qty
-                    total_val += in_val - out_val
-                    i['total_qty'] = total_qty 
-                    i['total_val'] = total_val
-
-                
-            else:
+            for v in vouch:
+                in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                in_val = 0 if v.inwards_val is None else v.inwards_val
+                out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                out_val = 0 if v.outwards_val is None else v.outwards_val
+                total_qty += in_qty - out_qty
+                total_val += in_val - out_val
                 i['total_qty'] = total_qty 
                 i['total_val'] = total_val
+
+                
+            # else:
+            #     i['total_qty'] = total_qty 
+            #     i['total_val'] = total_val
             
             value += total_val
 
-            startdate = comp.fin_begin
-            enddate = date.today
+        startdate = comp.fin_begin
+        enddate = date.today
         
 
-    context = {
-            'company' : comp,
-            'group' : group,
-            'item' : item,
-            'value' : value,
-            'total_qty': total_qty,
-            'total_val' :total_val,
-            'startdate' : startdate,
-            'enddate' : enddate
-        }
+        context = {
+                'company' : comp,
+                'group' : group,
+                'item' : item,
+                'value' : value,
+                'startdate' : startdate,
+                'enddate' : enddate
+            }
 
-    return render(request, 'stock_group_summary.html',context)
+        return render(request, 'stock_group_summary.html',context)
 
 def stock_item_monthly_summary(request,pk):
         
@@ -13920,7 +13965,7 @@ def stock_item_monthly_summary(request,pk):
         comp = Companies.objects.get(id=t_id)
    
         months = fmonths.objects.values()
-        item = stock_itemcreation.objects.get(id=pk)
+        item = stock_itemcreation.objects.get(id=pk,company = comp)
         vouch = stock_item_voucher.objects.filter(item_id = item.id,company = comp)
 
         invouch = Voucher.objects.filter(voucher_type__in = ['Debit_Note','Purchase']).values('voucher_name')
@@ -14019,7 +14064,7 @@ def stock_item_vouchers(request,pk,id):
 
         comp = Companies.objects.get(id = t_id)
         
-        item = stock_itemcreation.objects.get(id = pk)
+        item = stock_itemcreation.objects.get(id = pk,company = comp)
         mnth = fmonths.objects.get(id = id)
 
         voucher = stock_item_voucher.objects.filter(item_id = item.id, company = comp)
@@ -14057,7 +14102,7 @@ def stock_item_vouchers(request,pk,id):
             sum_out_val += out_val
             
 
-            vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type']).voucher_type
+            vouch_type = Voucher.objects.get(voucher_name = v['Voucher_type'],company = comp).voucher_type
             v['vouch_type'] = vouch_type
 
             clsval = stock_item_voucher.objects.get(id = v['id'],company = comp)
@@ -14121,7 +14166,7 @@ def alter_credit_voucher(request,pk):
         ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
 
         ldg1=tally_ledger.objects.filter(company=cmp1,under="Sales_Account")
-        item = stock_itemcreation.objects.all() 
+        item = stock_itemcreation.objects.filter(company = cmp1)
         godown = Godown_Items.objects.filter(comp=cmp1) 
 
         cred_voucher = credit_note.objects.get(screditid = pk)
@@ -14237,14 +14282,14 @@ def alter_credit_note(request,pk):
 
             mapped=zip(items,quantity,price,total,ids)
             mapped=list(mapped)
-            print(mapped)
+            # print(mapped)
 
             for ele in mapped:
 
                 credi = credit_item.objects.filter(scredit_id = pk).get(id = ele[4])
-                print(credi.id)
-                stockitm = stock_item_voucher.objects.get(voucher_item_id = credi.id)
-                print(ele[4])
+                # print(credi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = credi.id,company = cmp1)
+                # print(ele[4])
                 
                 credi.items = ele[0]
                 credi.quantity = ele[1]
@@ -14254,7 +14299,7 @@ def alter_credit_note(request,pk):
 
                 credi.save()
                     
-                item = stock_itemcreation.objects.get(name= ele[0])
+                item = stock_itemcreation.objects.get(name= ele[0],company = cmp1)
                 grp = CreateStockGrp.objects.get(id = item.under_id, comp = cmp1)
                     
                 outwards_val =int(ele[1]) * int(ele[2]) 
@@ -14295,7 +14340,7 @@ def alter_debit_voucher(request,pk):
         ldg=tally_ledger.objects.filter(company=cmp1,under__in=["Bank_Accounts" , "Cash_in_Hand" , "Sundry_Debtors" , "Sundry_Creditors" , "Branch_Divisions"])
     
         ldg1=tally_ledger.objects.filter(company=cmp1,under="Purchase_Account")
-        item = stock_itemcreation.objects.all() 
+        item = stock_itemcreation.objects.filter(company = cmp1)
         godown = Godown_Items.objects.filter(comp=cmp1) 
         
         vouch = Voucher.objects.get(id = deb_voucher.voucher_id)
@@ -14412,7 +14457,7 @@ def alter_debit_note(request,pk):
 
                 debi = debit_item.objects.filter(sdebit_id = pk).get(id = ele[4])
                 print(debi.id)
-                stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id)
+                stockitm = stock_item_voucher.objects.get(voucher_item_id = debi.id,company = cmp1)
                 print(ele[4])
 
                 debi.items = ele[0]
@@ -14423,7 +14468,7 @@ def alter_debit_note(request,pk):
 
                 debi.save()
                     
-                item = stock_itemcreation.objects.get(name= ele[0])
+                item = stock_itemcreation.objects.get(name= ele[0],company = cmp1)
                 grp = CreateStockGrp.objects.get(id = item.under_id,comp = cmp1)
                     
                 inwards_val =int(ele[1]) * int(ele[2]) 

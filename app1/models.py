@@ -661,6 +661,8 @@ class Godown_Items(models.Model):
     
 
 class stock_itemcreation(models.Model):
+
+    company = models.ForeignKey(Companies,on_delete=models.CASCADE,null=True,blank=True)
     under=models.ForeignKey(CreateStockGrp,on_delete=models.CASCADE,default=0)
     godown = models.ForeignKey(Godown_Items, on_delete=models.CASCADE,null=True,blank=True)
     name=models.CharField(max_length=100,null=True)
