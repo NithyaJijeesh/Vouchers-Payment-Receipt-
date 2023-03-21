@@ -95,6 +95,8 @@
                         <div class="col-sm-6 m-0 p-0"><label for="e">Under</label></div>
                         <div class="col-sm-6 m-0 p-0">
                             <input type="text" name="under" id="under" value="Primary" class="form-control" onclick="showform();">
+
+
                         </div>
                     </div>
                     <div class="row container-fluid  p-2">
@@ -284,6 +286,7 @@
 
     <script>
 
+
         function setPrimary(){
             document.getElementById('under').value= 'Primary';
             document.getElementById('underForm').style.visibility= "hidden";
@@ -299,10 +302,12 @@
             }
         }
         function setvalue1(units,unitsId,gr){
+            // console.log(units);
             document.getElementById('units').value= units,gr;
             document.getElementById('underForm1').style.visibility= "block";
             document.getElementsByName('underhidden1').value= unitsId;
             document.getElementById('additional').style.display = "flex";
+            document.getElementById('per1').value= units;
         }
         function closeForm() {
             document.getElementById("underForm").style.display = "none";

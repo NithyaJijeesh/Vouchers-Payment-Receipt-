@@ -865,6 +865,18 @@ urlpatterns = [
     path('profit_stock_group/<int:pk>',views.profit_stock_group,name='profit_stock_group'),
 
 
+#-----------------stock ageing analysis---------------
 
+    # path('liststockgroups',views.liststockgroups,name="liststockgroups"),
+    # path('stock_ageing/<pk>',views.stock_ageing,name='stock_ageing'),
+    # path('stock_monthly/<pk>',views.stock_monthly,name = 'stock_monthly'),
+    # path('stock_item_vouchers/<pk>/<id>',views.stock_item_vouchers,name='stock_item_vouchers'),
+    # path('item_inwards/<pk>/<d1>/<d2>',views.item_inwards,name="item_inwards"),
+    # path('stock_ageing_primary',views.stock_ageing_primary,name = 'stock_ageing_primary'),
+
+#-----------------bank reconciliations--------------
+
+    path('listofbankledgers' ,views.listofbankledgers, name= 'listofbankledgers'),
+    path('bank_reconciliation/<pk>' ,views.bank_reconciliation, name= 'bank_reconciliation'),
 
 ]

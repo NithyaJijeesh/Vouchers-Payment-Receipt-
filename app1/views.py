@@ -29,7 +29,7 @@ from django.db.models.functions import TruncDay
 from django.db.models.functions import TruncMonth
 from django.db.models.functions import TruncDate
 from django.db.models.functions import Extract
-from django.db.models import Count
+from django.db.models import Count,F
 from unittest import TextTestRunner
 from django.db.models import Q
 from django.db.models import Avg,Max,Min,Sum
@@ -77,8 +77,23 @@ def base(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-       
-        return render(request, 'base.html',{'tally':tally})
+        print(tally)
+        latestdate = []
+
+        pay = payment_voucher.objects.filter(company = t_id).last().date if payment_voucher.objects.count()>0 else date(1111,11,11)
+        rec = receipt_voucher.objects.filter(company = t_id).last().date if receipt_voucher.objects.count()>0 else date(1111,11,11)
+        cred = credit_note.objects.filter(comp = t_id).last().creditdate if credit_note.objects.count()>0 else date(1111,11,11)
+        deb = debit_note.objects.filter(comp = t_id).last().debitdate if debit_note.objects.count()>0 else date(1111,11,11)
+        
+        latestdate.extend((pay,rec,cred,deb))
+        # print(max(latestdate))
+        
+        context = {
+                    'tally' : tally,
+                    'latestdate' : max(latestdate),
+                    }
+
+        return render(request, 'base.html',context)
     return redirect("/")
 
 #......................jisha........................
@@ -5602,10 +5617,10 @@ def stock_items_creation(request):
             set_alter=request.POST['set_alter']
             typ_sply=request.POST['typ_sply']
             rate_of_duty=request.POST['rate_of_duty']
-            quantity=0 if request.POST['quantity'] is '' else request.POST['quantity']
-            rate=0 if request.POST['rate'] is '' else request.POST['rate']
-            per=0 if request.POST['per'] is '' else request.POST['per']
-            value= 0 if request.POST['value'] is '' else request.POST['value']
+            quantity=0 if request.POST['quantity'] == '' else request.POST['quantity']
+            rate=0 if request.POST['rate'] == '' else request.POST['rate']
+            per=0 if request.POST['per'] == '' else request.POST['per']
+            value= 0 if request.POST['value'] == '' else request.POST['value']
             
             i = CreateStockGrp.objects.get(name = under,comp = tally)
 
@@ -13417,7 +13432,7 @@ def create_payment_voucher(request):
 
             
 
-        payment_voucher(pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
+        payment_voucher(company = comp, pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
 
         pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid)
         
@@ -13458,7 +13473,7 @@ def list_receipt_voucher(request):
 
                 ledger[i].save()
 
-        voucher = Voucher.objects.filter(voucher_type = 'Receipt')
+        voucher = Voucher.objects.filter(voucher_type = 'Receipt',company = comp)
         context = {
                     'voucher' : voucher,
                     }
@@ -13528,7 +13543,7 @@ def create_receipt_voucher(request):
             
 
             
-        receipt_voucher(rid = rid,account = accnt[1], date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
+        receipt_voucher(company = comp,rid = rid,account = accnt[1], date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
 
         rec_vouch=receipt_voucher.objects.get(rid=receipt_voucher.objects.all().last().rid)
         
@@ -13715,12 +13730,13 @@ def bank_transcation(request):
 
         vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
 
-        
+        print(vouch_type)
 
         if vouch_type.voucher_type == 'Payment':
             bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
                                 transcation_type = t_type,instno = instno,instdate = instdate,
                                 amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+            
         elif vouch_type.voucher_type == 'Receipt':
 
             bank_transcations(voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
@@ -14530,6 +14546,774 @@ def get_sl_det1(request):
 
 # -----end---stock summary----------
 
+
+#------stock ageing analysis-----
+
+# def liststockgroups(request):
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         data=CreateStockGrp.objects.filter(comp = t_id)
+#         print(data)
+#         context={'data':data,}
+
+#         return render(request,'list_stock_group.html',context)
+
+
+# def stock_ageing(request,pk):
+
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         comp = Companies.objects.get(id=t_id)
+
+#         grp =CreateStockGrp.objects.get(id=pk,comp = t_id)
+
+#         item = stock_itemcreation.objects.filter(under_id = grp.id,company = t_id).values()
+        
+#         start_date =comp.fin_begin
+#         end_date = date.today()
+#         date_lt_45 = end_date - timedelta(days=45)
+#         date_45_90 = date_lt_45- timedelta(days=45)
+#         date_90_180 = date_45_90 - timedelta(days=90)
+#         s = (date_90_180-start_date).days
+#         date_gt_180 = date_90_180 - timedelta(days = s)
+
+#         gtotal_qty_lt_45 = gtotal_val_lt_45 = gtotal_qty_45_90 = gtotal_val_45_90 = 0
+#         gtotal_qty_90_180 = gtotal_val_90_180 = gtotal_qty_gt_180 = gtotal_val_gt_180 = 0
+#         gtotal = gtotal_neg = 0
+       
+#         for i in item:
+
+#             voucher = stock_item_voucher.objects.filter(item_id = i['id'],company = t_id)
+
+#             purchase_qty_lt_45 = sales_qty_lt_45= purchase_val_lt_45 = sales_val_lt_45 = 0
+#             purchase_qty_45_90 = sales_qty_45_90 = purchase_val_45_90 = sales_val_45_90 = 0
+#             purchase_qty_90_180 = sales_qty_90_180 = purchase_val_90_180 = sales_val_90_180 = 0
+#             purchase_qty_gt_180 = sales_qty_gt_180 =purchase_val_gt_180 = sales_val_gt_180= 0
+            
+
+#             total_qty_lt_45 = total_val_lt_45 = total_qty_45_90 = total_val_45_90 = total_qty_90_180 = 0
+#             total_val_90_180 =total_qty_gt_180 = total_val_gt_180 = total_sales_qty = total_sales_val = 0
+
+#             negative_stock = Total = 0
+
+
+#             if voucher.exists():
+            
+#                 for v in voucher:
+
+#                     days1 = (date.today()-v.date).days
+
+                    
+#                     if v.Voucher_type == 'Sales':
+                        
+#                         if days1 < 45:
+#                             sales_qty_lt_45 = 0 if v.outwards_qty is None else v.outwards_qty
+#                             sales_val_lt_45 = 0 if v.outwards_val is None else v.outwards_val
+#                             total_sales_qty += sales_qty_lt_45
+#                             total_sales_val += sales_val_lt_45
+
+#                         elif days1 >= 45 and days1 < 90:
+
+#                             sales_qty_45_90 = 0 if v.outwards_qty is None else v.outwards_qty
+#                             sales_val_45_90 = 0 if v.outwards_val is None else v.outwards_val
+#                             total_sales_qty += sales_qty_45_90
+#                             total_sales_val += sales_val_45_90
+
+                        
+#                         elif days1>= 90 and days1 < 180:
+
+#                             sales_qty_90_180 = 0 if v.outwards_qty is None else v.outwards_qty
+#                             sales_val_90_180 = 0 if v.outwards_val is None else v.outwards_val
+#                             total_sales_qty += sales_qty_90_180
+#                             total_sales_val += sales_val_90_180
+
+#                         else:
+
+#                             sales_qty_gt_180 = 0 if v.outwards_qty is None else v.outwards_qty
+#                             sales_val_gt_180 = 0 if v.outwards_val is None else v.outwards_val
+#                             total_sales_qty += sales_qty_gt_180
+#                             total_sales_val += sales_val_gt_180
+                        
+#                     elif v.Voucher_type == 'Purchase':
+
+#                         if days1 < 45:
+
+#                             purchase_qty_lt_45 += 0 if v.inwards_qty is None else v.inwards_qty
+#                             purchase_val_lt_45 += 0 if v.inwards_val is None else v.inwards_val
+
+#                         elif days1 >= 45 and days1 < 90:
+
+#                             purchase_qty_45_90 += 0 if v.inwards_qty is None else v.inwards_qty
+#                             purchase_val_45_90 += 0 if v.inwards_val is None else v.inwards_val
+                        
+#                         elif days1 >= 90 and days1 < 180:
+
+#                             purchase_qty_90_180 += 0 if v.inwards_qty is None else v.inwards_qty
+#                             purchase_val_90_180 += 0 if v.inwards_val is None else v.inwards_val
+                        
+#                         else:
+
+#                             purchase_qty_gt_180 += 0 if v.inwards_qty is None else v.inwards_qty
+#                             purchase_val_gt_180 += 0 if v.inwards_val is None else v.inwards_val
+
+
+#                     total_qty_gt_180 = purchase_qty_gt_180 - total_sales_qty
+#                     total_val_gt_180 = purchase_val_gt_180 - total_sales_val
+
+#                     if total_qty_gt_180 < 0:
+#                         total_qty_90_180 = purchase_qty_90_180+ total_qty_gt_180
+#                         total_val_90_180 = purchase_val_90_180 + total_val_gt_180
+#                         total_qty_gt_180 = 0
+#                         total_val_gt_180 = 0
+#                     else:
+#                         total_qty_90_180 = purchase_qty_90_180
+#                         total_val_90_180 = purchase_val_90_180
+
+#                     if total_qty_90_180 < 0:
+#                         total_qty_45_90 = purchase_qty_45_90 + total_qty_90_180
+#                         total_val_45_90 = purchase_val_45_90 + total_val_90_180
+#                         total_qty_90_180 = 0
+#                         total_val_90_180 = 0
+
+
+#                     else:
+#                         total_qty_45_90 = purchase_qty_45_90
+#                         total_val_45_90 = purchase_val_45_90
+                            
+#                     if total_qty_45_90 < 0:
+#                         total_qty_lt_45 = purchase_qty_lt_45 + total_qty_45_90
+#                         total_val_lt_45 = purchase_val_lt_45 + total_val_45_90
+#                         total_qty_45_90 = 0
+#                         total_val_45_90 = 0
+
+
+#                     else:
+#                         total_qty_lt_45 = purchase_qty_lt_45
+#                         total_val_lt_45 = purchase_val_lt_45
+
+#                     if total_qty_lt_45 < 0:
+
+#                         negative_stock = total_qty_lt_45
+#                         total_qty_lt_45 = 0
+#                         total_val_lt_45 = 0
+
+                    
+#                 Total = total_qty_lt_45 + total_qty_45_90 + total_qty_90_180 + total_qty_gt_180 + negative_stock
+
+#                 i['totalqty_lt_45'] = total_qty_lt_45
+#                 i['totalval_lt_45'] = total_val_lt_45
+
+#                 i['totalqty_45_90'] = total_qty_45_90
+#                 i['totalval_45_90'] = total_val_45_90
+
+#                 i['totalqty_90_180'] = total_qty_90_180
+#                 i['totalval_90_180'] = total_val_90_180
+
+#                 i['totalqty_gt_180'] = total_qty_gt_180
+#                 i['totalval_gt_180'] = total_val_gt_180
+
+#                 i['negative_stock'] = negative_stock
+
+#                 i['Total'] = Total
+
+                
+            
+#             else:
+#                 if i['trackdate'] == 'No':
+#                     days2 = (datetime.today()-datetime.strptime('01-04-2022','%d-%m-%Y')).days
+#                 else:
+#                     days2 = (datetime.today()-datetime.strptime(i['trackdate'],'%d-%m-%Y')).days
+
+#                 if days2 < 45:
+#                     total_qty_lt_45 = i['quantity']
+#                     total_val_lt_45 = i['value']
+#                 elif days2 >= 45 and days2 < 90:
+#                     total_qty_45_90 = i['quantity']
+#                     total_val_45_90 = i['value']
+#                 elif days2 >= 90 and days2 < 180:
+#                     total_qty_90_180 = i['quantity']
+#                     total_val_90_180 = i['value']
+#                 else:
+#                     total_qty_gt_180 = i['quantity']
+#                     total_val_gt_180 = i['value']
+
+#                 Total = int(total_qty_lt_45) + int(total_qty_45_90) + int(total_qty_90_180) + int(total_qty_gt_180)
+
+#                 i['totalqty_lt_45'] = int(total_qty_lt_45)
+#                 i['totalval_lt_45'] = int(total_val_lt_45)
+
+#                 i['totalqty_45_90'] = int(total_qty_45_90)
+#                 i['totalval_45_90'] = int(total_val_45_90)
+
+#                 i['totalqty_90_180'] = int(total_qty_90_180)
+#                 i['totalval_90_180'] = int(total_val_90_180)
+
+#                 i['totalqty_gt_180'] = int(total_qty_gt_180)
+#                 i['totalval_gt_180'] = int(total_val_gt_180)
+
+#                 i['Total'] = Total
+            
+#             gtotal += Total
+#             gtotal_qty_lt_45 += int(total_qty_lt_45)
+#             gtotal_val_lt_45 += int(total_val_lt_45)
+#             gtotal_qty_45_90 += int(total_qty_45_90)
+#             gtotal_val_45_90 += int(total_val_45_90)
+#             gtotal_qty_90_180 += int(total_qty_90_180)
+#             gtotal_val_90_180 += int(total_val_90_180)
+#             gtotal_qty_gt_180 += int(total_qty_gt_180)
+#             gtotal_val_gt_180 += int(total_val_gt_180)
+#             gtotal_neg += int(negative_stock)
+
+#             i['startdate'] = start_date
+#             i['enddate'] = end_date
+#             i['datel45'] = date_lt_45
+#             i['date4590'] = date_45_90
+#             i['date90180'] = date_90_180
+#             i['dategt180'] = date_gt_180
+
+#         if item.exists():
+#             if stock_item_voucher.objects.filter(company = t_id).exists():
+#                 #vouch = stock_item_voucher.objects.all().latest('date')
+#                 vouch = stock_item_voucher.objects.annotate(max_date = max('date')).filter(date = F('max_date'))
+
+#                 vdate = (vouch.date).strftime('1-%b-%y')
+            
+#             else:
+#                 d = datetime.strptime('1-Apr-22','1-%b-%y')
+#                 vdate =date.strftime(d,'1-%b-%y')
+#         else:
+#             d = datetime.strptime('1-Apr-22','1-%b-%y')
+#             vdate =date.strftime(d,'1-%b-%y')
+
+#         context = {
+#                 'company' : comp,
+#                 'group': grp,
+#                 'item'  :item,
+#                 'gt1' : gtotal,
+#                 'gt2' : gtotal_qty_lt_45,
+#                 'gt3' : gtotal_val_lt_45,
+#                 'gt4' : gtotal_qty_45_90,
+#                 'gt5' : gtotal_val_45_90,
+#                 'gt6' : gtotal_qty_90_180,
+#                 'gt7' : gtotal_val_90_180,
+#                 'gt8' : gtotal_qty_gt_180,
+#                 'gt9' : gtotal_val_gt_180,
+#                 'gt0' : gtotal_neg,
+#                 'vdate':vdate,
+#             }
+
+#         return render(request,'stock_ageing_analysis.html',context)
+       
+
+# def stock_ageing_primary(request):
+
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         comp = Companies.objects.get(id=t_id)
+#         grp = CreateStockGrp.objects.filter(under_name = 'Primary',comp = t_id).values('id')
+
+#         item = stock_itemcreation.objects.filter(under_id__in = grp,company = t_id).values()
+            
+#         start_date =comp.fin_begin
+#         end_date = date.today()
+#         date_lt_45 = end_date - timedelta(days=45)
+#         date_45_90 = date_lt_45- timedelta(days=45)
+#         date_90_180 = date_45_90 - timedelta(days=90)
+#         s = (date_90_180-start_date).days
+#         date_gt_180 = date_90_180 - timedelta(days = s)
+
+#         gtotal_qty_lt_45 = gtotal_val_lt_45 = gtotal_qty_45_90 = gtotal_val_45_90 = 0
+#         gtotal_qty_90_180 = gtotal_val_90_180 = gtotal_qty_gt_180 = gtotal_val_gt_180 = 0
+#         gtotal = gtotal_neg = 0
+        
+#         if item.exists():
+
+#             for i in item:
+
+#                 voucher = stock_item_voucher.objects.filter(item_id = i['id'])
+
+#                 purchase_qty_lt_45 = sales_qty_lt_45= purchase_val_lt_45 = sales_val_lt_45 = 0
+#                 purchase_qty_45_90 = sales_qty_45_90 = purchase_val_45_90 = sales_val_45_90 = 0
+#                 purchase_qty_90_180 = sales_qty_90_180 = purchase_val_90_180 = sales_val_90_180 = 0
+#                 purchase_qty_gt_180 = sales_qty_gt_180 =purchase_val_gt_180 = sales_val_gt_180= 0
+                
+
+#                 total_qty_lt_45 = total_val_lt_45 = total_qty_45_90 = total_val_45_90 = total_qty_90_180 = 0
+#                 total_val_90_180 =total_qty_gt_180 = total_val_gt_180 = total_sales_qty = total_sales_val = 0
+
+#                 negative_stock = Total = 0
+
+
+#                 if voucher.exists():
+                
+#                     for v in voucher:
+
+#                         days1 = (date.today()-v.date).days
+
+                        
+#                         if v.Voucher_type == 'Sales':
+                            
+#                             if days1 < 45:
+#                                 sales_qty_lt_45 = 0 if v.outwards_qty is None else v.outwards_qty
+#                                 sales_val_lt_45 = 0 if v.outwards_val is None else v.outwards_val
+#                                 total_sales_qty += sales_qty_lt_45
+#                                 total_sales_val += sales_val_lt_45
+
+#                             elif days1 >= 45 and days1 < 90:
+
+#                                 sales_qty_45_90 = 0 if v.outwards_qty is None else v.outwards_qty
+#                                 sales_val_45_90 = 0 if v.outwards_val is None else v.outwards_val
+#                                 total_sales_qty += sales_qty_45_90
+#                                 total_sales_val += sales_val_45_90
+
+                            
+#                             elif days1>= 90 and days1 < 180:
+
+#                                 sales_qty_90_180 = 0 if v.outwards_qty is None else v.outwards_qty
+#                                 sales_val_90_180 = 0 if v.outwards_val is None else v.outwards_val
+#                                 total_sales_qty += sales_qty_90_180
+#                                 total_sales_val += sales_val_90_180
+
+#                             else:
+
+#                                 sales_qty_gt_180 = 0 if v.outwards_qty is None else v.outwards_qty
+#                                 sales_val_gt_180 = 0 if v.outwards_val is None else v.outwards_val
+#                                 total_sales_qty += sales_qty_gt_180
+#                                 total_sales_val += sales_val_gt_180
+                            
+                            
+#                         elif v.Voucher_type == 'Purchase':
+
+#                             if days1 < 45:
+
+#                                 purchase_qty_lt_45 += 0 if v.inwards_qty is None else v.inwards_qty
+#                                 purchase_val_lt_45 += 0 if v.inwards_val is None else v.inwards_val
+
+#                             elif days1 >= 45 and days1 < 90:
+
+#                                 purchase_qty_45_90 += 0 if v.inwards_qty is None else v.inwards_qty
+#                                 purchase_val_45_90 += 0 if v.inwards_val is None else v.inwards_val
+                            
+#                             elif days1 >= 90 and days1 < 180:
+
+#                                 purchase_qty_90_180 += 0 if v.inwards_qty is None else v.inwards_qty
+#                                 purchase_val_90_180 += 0 if v.inwards_val is None else v.inwards_val
+                            
+#                             else:
+
+#                                 purchase_qty_gt_180 += 0 if v.inwards_qty is None else v.inwards_qty
+#                                 purchase_val_gt_180 += 0 if v.inwards_val is None else v.inwards_val
+
+
+#                         total_qty_gt_180 = purchase_qty_gt_180 - total_sales_qty
+#                         total_val_gt_180 = purchase_val_gt_180 - total_sales_val
+
+#                         if total_qty_gt_180 < 0:
+#                             total_qty_90_180 = purchase_qty_90_180+ total_qty_gt_180
+#                             total_val_90_180 = purchase_val_90_180 + total_val_gt_180
+#                             total_qty_gt_180 = 0
+#                             total_val_gt_180 = 0
+#                         else:
+#                             total_qty_90_180 = purchase_qty_90_180
+#                             total_val_90_180 = purchase_val_90_180
+
+#                         if total_qty_90_180 < 0:
+#                             total_qty_45_90 = purchase_qty_45_90 + total_qty_90_180
+#                             total_val_45_90 = purchase_val_45_90 + total_val_90_180
+#                             total_qty_90_180 = 0
+#                             total_val_90_180 = 0
+
+
+#                         else:
+#                             total_qty_45_90 = purchase_qty_45_90
+#                             total_val_45_90 = purchase_val_45_90
+                                
+#                         if total_qty_45_90 < 0:
+#                             total_qty_lt_45 = purchase_qty_lt_45 + total_qty_45_90
+#                             total_val_lt_45 = purchase_val_lt_45 + total_val_45_90
+#                             total_qty_45_90 = 0
+#                             total_val_45_90 = 0
+
+
+#                         else:
+#                             total_qty_lt_45 = purchase_qty_lt_45
+#                             total_val_lt_45 = purchase_val_lt_45
+
+#                         if total_qty_lt_45 < 0:
+
+#                             negative_stock = total_qty_lt_45
+#                             total_qty_lt_45 = 0
+#                             total_val_lt_45 = 0
+
+                        
+#                     Total = total_qty_lt_45 + total_qty_45_90 + total_qty_90_180 + total_qty_gt_180 + negative_stock
+
+#                     i['totalqty_lt_45'] = total_qty_lt_45
+#                     i['totalval_lt_45'] = total_val_lt_45
+
+#                     i['totalqty_45_90'] = total_qty_45_90
+#                     i['totalval_45_90'] = total_val_45_90
+
+#                     i['totalqty_90_180'] = total_qty_90_180
+#                     i['totalval_90_180'] = total_val_90_180
+
+#                     i['totalqty_gt_180'] = total_qty_gt_180
+#                     i['totalval_gt_180'] = total_val_gt_180
+
+#                     i['negative_stock'] = negative_stock
+
+#                     i['Total'] = Total
+
+                    
+                
+#                 else:
+#                     if i['trackdate'] == 'No':
+#                         days2 = (datetime.today()-datetime.strptime('01-04-2022','%d-%m-%Y')).days
+#                     else:
+#                         days2 = (datetime.today()-datetime.strptime(i['trackdate'],'%d-%m-%Y')).days
+
+#                     if days2 < 45:
+#                         total_qty_lt_45 = i['quantity']
+#                         total_val_lt_45 = i['value']
+#                     elif days2 >= 45 and days2 < 90:
+#                         total_qty_45_90 = i['quantity']
+#                         total_val_45_90 = i['value']
+#                     elif days2 >= 90 and days2 < 180:
+#                         total_qty_90_180 = i['quantity']
+#                         total_val_90_180 = i['value']
+#                     else:
+#                         total_qty_gt_180 = i['quantity']
+#                         total_val_gt_180 = i['value']
+
+#                     Total = int(total_qty_lt_45) + int(total_qty_45_90) + int(total_qty_90_180) + int(total_qty_gt_180)
+
+#                     i['totalqty_lt_45'] = int(total_qty_lt_45)
+#                     i['totalval_lt_45'] = int(total_val_lt_45)
+
+#                     i['totalqty_45_90'] = int(total_qty_45_90)
+#                     i['totalval_45_90'] = int(total_val_45_90)
+
+#                     i['totalqty_90_180'] = int(total_qty_90_180)
+#                     i['totalval_90_180'] = int(total_val_90_180)
+
+#                     i['totalqty_gt_180'] = int(total_qty_gt_180)
+#                     i['totalval_gt_180'] = int(total_val_gt_180)
+
+#                     i['Total'] = Total
+                
+#                 gtotal += Total
+#                 gtotal_qty_lt_45 += int(total_qty_lt_45)
+#                 gtotal_val_lt_45 += int(total_val_lt_45)
+#                 gtotal_qty_45_90 += int(total_qty_45_90)
+#                 gtotal_val_45_90 += int(total_val_45_90)
+#                 gtotal_qty_90_180 += int(total_qty_90_180)
+#                 gtotal_val_90_180 += int(total_val_90_180)
+#                 gtotal_qty_gt_180 += int(total_qty_gt_180)
+#                 gtotal_val_gt_180 += int(total_val_gt_180)
+#                 gtotal_neg += int(negative_stock)
+
+#                 i['startdate'] = start_date
+#                 i['enddate'] = end_date
+#                 i['datel45'] = date_lt_45
+#                 i['date4590'] = date_45_90
+#                 i['date90180'] = date_90_180
+#                 i['dategt180'] = date_gt_180
+
+                    
+#         if item.exists():
+#             if stock_item_voucher.objects.all().exists():
+#                 vouch = stock_item_voucher.objects.annotate(max_date = max('date')).filter(date = F('max_date'))
+#                 vdate = (vouch.date).strftime('1-%b-%y')
+            
+#             else:
+#                 d = datetime.strptime('1-Apr-22','1-%b-%y')
+#                 vdate =date.strftime(d,'1-%b-%y')
+#         else:
+#             d = datetime.strptime('1-Apr-22','1-%b-%y')
+#             vdate =date.strftime(d,'1-%b-%y')
+
+#         context = {
+#                 'company' : comp,
+#                 'group': grp,
+#                 'item'  :item,
+#                 'gt1' : gtotal,
+#                 'gt2' : gtotal_qty_lt_45,
+#                 'gt3' : gtotal_val_lt_45,
+#                 'gt4' : gtotal_qty_45_90,
+#                 'gt5' : gtotal_val_45_90,
+#                 'gt6' : gtotal_qty_90_180,
+#                 'gt7' : gtotal_val_90_180,
+#                 'gt8' : gtotal_qty_gt_180,
+#                 'gt9' : gtotal_val_gt_180,
+#                 'gt0' : gtotal_neg,
+#                 'vdate':vdate,
+                
+#                 }
+
+#         return render(request,'stock_ageing_primary.html',context)
+
+# def stock_monthly(request,pk):
+
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         comp = Companies.objects.get(id=t_id)
+#         months = fmonths.objects.values()
+#         item = stock_itemcreation.objects.get(id=pk,company = t_id)
+#         vouch = stock_item_voucher.objects.filter(item_id = item.id,company = t_id)
+
+#         beg_date = comp.fin_begin.strftime('1-%b-%y')
+#         if vouch.exists():
+#             v = vouch.latest('date')
+#             new_date = (v.date).strftime('1-%b-%y')
+#         else:
+#             new_date = comp.fin_begin.strftime('1-%b-%y')
+
+#         total_inqty = total_inval = total_outqty = total_outval = 0
+#         sum_in_qty = sum_in_val = sum_out_qty = sum_out_val = 0
+#         in_qty = in_val = out_qty = out_val =0
+#         total_qty = int(item.quantity)
+#         total_val = int(item.value)
+
+#         for mnth in months:
+
+#             if vouch.exists():
+
+#                 for v in vouch:
+
+#                     if v.month_id == mnth['id']:
+
+#                         in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+#                         in_val = 0 if v.inwards_val is None else v.inwards_val
+#                         out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+#                         out_val = 0 if v.outwards_val is None else v.outwards_val
+
+#                         total_inqty += in_qty
+#                         total_inval += in_val
+#                         total_outqty += out_qty
+#                         total_outval += out_val
+
+#                         if v.Voucher_type == 'Purchase':
+#                             mnth['total_inqty'] = total_inqty
+#                             mnth['total_inval'] = total_inval
+#                         else:
+#                             mnth['total_outqty'] = total_outqty
+#                             mnth['total_outval'] = total_outval
+                        
+#                         total_qty += in_qty - out_qty
+#                         total_val += in_val - out_val
+
+#                         mnth['total_qty'] = total_qty
+#                         mnth['total_val'] = total_val
+
+#                         sum_in_qty += in_qty
+#                         sum_in_val += in_val
+#                         sum_out_qty += out_qty
+#                         sum_out_val += out_val  
+
+#                 total_inqty = total_inval = total_outqty = total_outval = 0
+            
+#             last_qty = total_qty
+#             last_val = total_val
+
+        
+#         context = {
+#                     'company' : comp,
+#                     'months' : months,
+#                     'item' : item,
+#                     'voucher' : vouch,
+#                     'tot_qty' :last_qty,
+#                     'tot_val' : last_val,
+#                     'sum_in_qty' : sum_in_qty,
+#                     'sum_in_val' : sum_in_val,
+#                     'sum_out_qty' : sum_out_qty,
+#                     'sum_out_val' : sum_out_val,
+#                     'beg_date' : beg_date,
+#                     'new_date' : new_date,
+                    
+#                 }
+
+#         return render(request,'stock_item_monthly_summary.html',context)
+
+
+# def stock_item_vouchers(request,pk,id):
+
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         comp = Companies.objects.get(id = t_id)
+        
+#         item = stock_itemcreation.objects.get(id = pk,company = t_id)
+#         mnth = fmonths.objects.get(id = id)
+#         voucher = stock_item_voucher.objects.filter(item_id = item.id,company = t_id)
+
+#         for v in voucher:
+#             if v.Voucher_type == 'Purchase':
+#                 inwards_value = v.inwards_qty * v.rate * v.per
+#                 v.inwards_val = inwards_value 
+#             else:
+#                 outwards_value = v.outwards_qty * v.rate * v.per
+#                 v.outwards_val = outwards_value
+
+#             v_month = v.date.strftime('%B')
+#             m_id = fmonths.objects.get(month_name = v_month)
+
+#             v.month = m_id
+#             v.save()
+
+            
+
+#         vouch = stock_item_voucher.objects.filter(month = mnth,item_id = item.id,company = t_id)
+#         qty = sum_in_qty = int(item.quantity)
+#         val = sum_in_val = int(item.value)
+
+#         sum_out_qty = sum_out_val = 0
+
+#         for v in vouch:    
+
+#             in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+#             in_val = 0 if v.inwards_val is None else v.inwards_val
+#             out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+#             out_val = 0 if v.outwards_val is None else v.outwards_val
+
+#             qty += in_qty-out_qty
+#             val += in_val-out_val
+
+#             v.closing_qty = qty
+#             v.closing_val = val
+#             v.save()
+
+#             sum_in_qty += in_qty
+#             sum_in_val += in_val
+#             sum_out_qty += out_qty
+#             sum_out_val += out_val
+            
+#         m =  int(datetime.strptime(mnth.month_name, '%B').month)
+#         y = int(v.date.strftime('%Y'))
+#         beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
+
+#         if mnth.month_name != 'December':
+#             m2 =  int(datetime.strptime(mnth.month_name, '%B').month)+1
+#         else:
+#             m2 = 10
+#         y = int(v.date.strftime('%Y'))
+#         end_date = (datetime(y,m2,1) - timedelta(days=1)).date().strftime('%d-%b-%y')
+
+#         context = {
+#                     'company' : comp,
+#                     'item' : item,
+#                     'voucher' : vouch,
+#                     'mnth' : mnth,
+#                     'sum_in_qty' : sum_in_qty,
+#                     'sum_in_val' : sum_in_val,
+#                     'sum_out_qty' : sum_out_qty,
+#                     'sum_out_val' : sum_out_val,
+#                     'sum_closing_qty': qty,
+#                     'sum_closing_val':val, 
+#                     'beg_date' : beg_date, 
+#                     'end_date' : end_date
+#                   }
+    
+#         return render(request,'stock_item_voucher.html',context)
+
+# def item_inwards(request,pk,d1,d2):
+
+#     if 't_id' in request.session:
+#         if request.session.has_key('t_id'):
+#             t_id = request.session['t_id']
+#         else:
+#             return redirect('/')
+
+#         comp = Companies.objects.get(id=t_id)
+#         item = stock_itemcreation.objects.get(id = pk,company = t_id)
+
+#         voucher = stock_item_voucher.objects.filter(date__range = [d1,d2],Voucher_type = 'Purchase',item_id = item.id,company = t_id)
+#         qty = int(item.quantity)
+#         #rate = int(item.rate)
+#         val = int(item.value)
+
+#         first_date = datetime.strptime(d1,'%Y-%m-%d').date()
+#         first_date = first_date.strftime('%d-%b-%y')
+        
+#         last_date = datetime.strptime(d2,'%Y-%m-%d').date()
+#         last_date = last_date.strftime('%d-%b-%y')
+
+#         for v in voucher:
+#             qty += 0 if v.inwards_qty is None else v.inwards_qty
+#             #rate += 0 if v.inwards_qty is None else v.rate
+#             val += 0 if v.inwards_val is None else v.inwards_val
+            
+
+#         context = {
+#                     'company' : comp ,
+#                     'item' : item ,
+#                     'voucher' : voucher,
+#                     'qty' : qty,
+#                     'val' : val,
+#                     'first_date' : first_date,
+#                     'last_date' : last_date,
+
+#         }
+#         return render(request,'item_inwards_details.html',context)
+
+
+#--------------------- bank reconciliation---------------------
+
+def listofbankledgers(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        data=CreateStockGrp.objects.filter(comp = t_id)
+
+        ledg = tally_ledger.objects.filter(company = t_id, under__in = ['Bank_Accounts','Bank_OCC_AC','Bank_OD_A/c'])
+        print(ledg)
+        context={
+                    'data':data, 
+                    'ledg' : ledg,
+                }
+
+        return render(request,'list_bank_ledger.html',context)
+
+def bank_reconciliation(request, pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
+        ledger = tally_ledger.objects.get(company = t_id,id = pk)
+
+        # start_date =comp.fin_begin
+        # end_date = comp.fin_end
+
+        context = {
+                    'company' : comp,
+                    'ledger' : ledger,
+                 }
+        return render(request,'bank_reconciliation.html',context)
 
          
    
