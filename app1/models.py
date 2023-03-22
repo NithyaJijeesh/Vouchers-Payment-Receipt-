@@ -1787,6 +1787,9 @@ class receipt_particulars(models.Model):
 
 class bank_transcations(models.Model):
 
+    company = models.ForeignKey(Companies,on_delete=models.CASCADE,null=True,blank=True)
+
+
     voucher = models.ForeignKey(Voucher,on_delete=models.CASCADE,null=True,blank=True)
     pay_voucher = models.IntegerField(null=True,blank=True)
     rec_voucher = models.IntegerField(null=True,blank=True)

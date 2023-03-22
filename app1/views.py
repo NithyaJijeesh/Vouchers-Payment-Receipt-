@@ -51,8 +51,26 @@ def login(request):
                 member=Companies.objects.get(email=request.POST['email'], password=request.POST['password'])
                 request.session['t_id'] = member.id 
                 tally=Companies.objects.filter(id= member.id)
+
+                t = tally.values('fin_begin')[0]['fin_begin']
+
+                latestdate = []
+
+                pay = payment_voucher.objects.filter(company = member.id).last().date if payment_voucher.objects.filter(company = member.id).exists() else t
+
+                rec = receipt_voucher.objects.filter(company = member.id).last().date if receipt_voucher.objects.filter(company = member.id).exists() else t
+
+                cred = credit_note.objects.filter(comp = member.id).last().creditdate if credit_note.objects.filter(comp = member.id).exists() else t
+
+                deb = debit_note.objects.filter(comp = member.id).last().debitdate if debit_note.objects.filter(comp = member.id).exists() else t
+                latestdate.extend((pay,rec,cred,deb))
+
                 
-                return render(request,'base.html',{'tally':tally})
+                context = {
+                            'tally' : tally,
+                            'latestdate' : max(latestdate),
+                            }
+                return render(request,'base.html',context)
     
         else:
             context = {'msg_error': 'Invalid data'}
@@ -77,16 +95,19 @@ def base(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-        print(tally)
+        t = tally.values('fin_begin')[0]['fin_begin']
+
         latestdate = []
 
-        pay = payment_voucher.objects.filter(company = t_id).last().date if payment_voucher.objects.count()>0 else date(1111,11,11)
-        rec = receipt_voucher.objects.filter(company = t_id).last().date if receipt_voucher.objects.count()>0 else date(1111,11,11)
-        cred = credit_note.objects.filter(comp = t_id).last().creditdate if credit_note.objects.count()>0 else date(1111,11,11)
-        deb = debit_note.objects.filter(comp = t_id).last().debitdate if debit_note.objects.count()>0 else date(1111,11,11)
-        
+        pay = payment_voucher.objects.filter(company = t_id).last().date if payment_voucher.objects.filter(company = t_id).exists() else t
+
+        rec = receipt_voucher.objects.filter(company = t_id).last().date if receipt_voucher.objects.filter(company = t_id).exists() else t
+
+        cred = credit_note.objects.filter(comp = t_id).last().creditdate if credit_note.objects.filter(comp = t_id).exists() else t
+
+        deb = debit_note.objects.filter(comp = t_id).last().debitdate if debit_note.objects.filter(comp = t_id).exists() else t
+
         latestdate.extend((pay,rec,cred,deb))
-        # print(max(latestdate))
         
         context = {
                     'tally' : tally,
@@ -911,7 +932,9 @@ def create_ledger_chequebk(request):
             tn=request.POST['to_number']
             nc=request.POST['number_cheques']
             nmc=request.POST['name_chequebk']
-            lcb=ledger_chequebook(ledger_name = nm,
+            lcb=ledger_chequebook(
+                                company = tally,
+                                ledger_name = nm,
                                 from_number=fn,
                                 to_number = tn,
                                 no_of_cheques = nc,
@@ -13389,7 +13412,7 @@ def payment_vouchers(request):
         ledg_grp = tally_ledger.objects.filter(company = comp,under__in = ['Bank_Accounts','Cash_in_Hand'])
 
      
-        v  = 1 if payment_voucher.objects.values('pid').last() is None else payment_voucher.objects.values('pid').last()['pid']+1
+        v  = 1 if payment_voucher.objects.filter(company = comp).values('pid').last() is None else payment_voucher.objects.filter(company = comp).values('pid').last()['pid']+1
         
        
         context = {
@@ -13434,7 +13457,7 @@ def create_payment_voucher(request):
 
         payment_voucher(company = comp, pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
 
-        pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid)
+        pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid,company = comp)
         
         particulars = []
         for i in particulars_id:
@@ -13496,7 +13519,7 @@ def receipt_vouchers(request):
         ledg_grp_all = tally_ledger.objects.filter(company = comp)
         ledg_grp = tally_ledger.objects.filter(company = comp,under__in = ['Bank_Accounts','Cash_in_Hand'])
       
-        v  = 1 if receipt_voucher.objects.values('rid').last() is None else receipt_voucher.objects.values('rid').last()['rid']+1
+        v  = 1 if receipt_voucher.objects.filter(company = comp).values('rid').last() is None else receipt_voucher.objects.filter(company = comp).values('rid').last()['rid']+1
 
      
         context = {
@@ -13545,7 +13568,7 @@ def create_receipt_voucher(request):
             
         receipt_voucher(company = comp,rid = rid,account = accnt[1], date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
 
-        rec_vouch=receipt_voucher.objects.get(rid=receipt_voucher.objects.all().last().rid)
+        rec_vouch=receipt_voucher.objects.get(rid=receipt_voucher.objects.all().last().rid,company = comp)
         
         particulars = []
         for i in particulars_id:
@@ -13567,184 +13590,241 @@ def create_receipt_voucher(request):
 
 
 def cur_balance(request):
-    i = request.GET.get('id')
-    ledger = tally_ledger.objects.values().filter(id = i)
-    data = list(ledger)
-    return JsonResponse(data, safe = False)
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
+
+        i = request.GET.get('id')
+        ledger = tally_ledger.objects.values().filter(id = i,company = comp)
+        data = list(ledger)
+        return JsonResponse(data, safe = False)
 
 
 def cur_balance_change(request):
-    
-    ac = request.GET.get('ac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
 
-    if type == 'Dr':
-        v1 = int(i)- int(j)
-        if v1 < 0:
-            cur_type = 'Cr'
-            val = abs(v1)
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
         else:
-            cur_type = 'Dr'
-            val = v1
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Cr'
-
-    #print(val) 
-    #print(open_type)
-
-    ledger = tally_ledger.objects.get(id = ac)
-
-
-
-    ledger.current_blnc = val
-    ledger.current_blnc_type = cur_type
-    ledger.save()
-   
-    #print(ledger)
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
     
-    context = {'val' : val,'cur_type': cur_type, 'ledger' : ledger }
+        ac = request.GET.get('ac')
+        i = request.GET.get('curblnc')
+        j = request.GET.get('amount')
+        type = request.GET.get('curblnct')
+
+        if type == 'Dr':
+            v1 = int(i)- int(j)
+            if v1 < 0:
+                cur_type = 'Cr'
+                val = abs(v1)
+            else:
+                cur_type = 'Dr'
+                val = v1
+        else:
+            val = int(i) + int(j)
+            cur_type = 'Cr'
+
+        #print(val) 
+        #print(open_type)
+
+        ledger = tally_ledger.objects.get(id = ac,company = comp)
+
+
+
+        ledger.current_blnc = val
+        ledger.current_blnc_type = cur_type
+        ledger.save()
     
-    return render(request,'curbalance_change.html', context)
+        #print(ledger)
+        
+        context = {'val' : val,'cur_type': cur_type, 'ledger' : ledger }
+        
+        return render(request,'curbalance_change.html', context)
 
 def pcur_balance_change(request):
-    
-    ac = request.GET.get('pac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-    #print(type)
-    
-    if type == 'Cr':
-        v2 = int(i)- int(j)
-        if v2 < 0:
-            val = abs(v2)
-            cur_type = 'Dr'
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
         else:
-            val = v2
-            cur_type = 'Cr'
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Dr'
-
-    ledger = tally_ledger.objects.get(id = ac)
-
-    ledger.current_blnc = val
-    ledger.current_blnc_type = cur_type
-    ledger.save()
-    #print(ledger.current_blnc)
-
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
     
-    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+        ac = request.GET.get('pac')
+        i = request.GET.get('curblnc')
+        j = request.GET.get('amount')
+        type = request.GET.get('curblnct')
+        #print(type)
+        
+        if type == 'Cr':
+            v2 = int(i)- int(j)
+            if v2 < 0:
+                val = abs(v2)
+                cur_type = 'Dr'
+            else:
+                val = v2
+                cur_type = 'Cr'
+        else:
+            val = int(i) + int(j)
+            cur_type = 'Dr'
+
+        ledger = tally_ledger.objects.get(id = ac,company= comp)
+
+        ledger.current_blnc = val
+        ledger.current_blnc_type = cur_type
+        ledger.save()
+        #print(ledger.current_blnc)
+
+        
+        return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
 
 def receipt_cur_balance_change(request):
-    
-    ac = request.GET.get('ac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
 
-    if type == 'Cr':
-        v2 = int(i)- int(j)
-        if v2 < 0:
-            val = abs(v2)
-            cur_type = 'Dr'
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
         else:
-            val = v2
-            cur_type = 'Cr'
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Dr'
+            return redirect('/')
         
-
-    ledger = tally_ledger.objects.get(id = ac)
+        comp = Companies.objects.get(id = t_id)
     
-    return render(request,'curbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+        ac = request.GET.get('ac')
+        i = request.GET.get('curblnc')
+        j = request.GET.get('amount')
+        type = request.GET.get('curblnct')
+
+        if type == 'Cr':
+            v2 = int(i)- int(j)
+            if v2 < 0:
+                val = abs(v2)
+                cur_type = 'Dr'
+            else:
+                val = v2
+                cur_type = 'Cr'
+        else:
+            val = int(i) + int(j)
+            cur_type = 'Dr'
+            
+
+        ledger = tally_ledger.objects.get(id = ac,company = comp)
+        
+        return render(request,'curbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
 
 def receipt_pcur_balance_change(request):
-    
-    ac = request.GET.get('pac')
-    i = request.GET.get('curblnc')
-    j = request.GET.get('amount')
-    type = request.GET.get('curblnct')
-    if type == 'Dr':
-        v1 = int(i)- int(j)
-        if v1 < 0:
-            cur_type = 'Cr'
-            val = abs(v1)
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
         else:
-            cur_type = 'Dr'
-            val = v1
-    else:
-        val = int(i) + int(j)
-        cur_type = 'Cr'
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
     
+        ac = request.GET.get('pac')
+        i = request.GET.get('curblnc')
+        j = request.GET.get('amount')
+        type = request.GET.get('curblnct')
+        if type == 'Dr':
+            v1 = int(i)- int(j)
+            if v1 < 0:
+                cur_type = 'Cr'
+                val = abs(v1)
+            else:
+                cur_type = 'Dr'
+                val = v1
+        else:
+            val = int(i) + int(j)
+            cur_type = 'Cr'
+        
 
-    ledger = tally_ledger.objects.get(id = ac)
+        ledger = tally_ledger.objects.get(id = ac,company = comp)
 
-    #print(val)
-    #print(ledger)
-    return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
+        #print(val)
+        #print(ledger)
+        return render(request,'pcurbalance_change.html', {'val' : val,'cur_type': cur_type, 'ledger' : ledger })
 
 def cheque_range(request):
-    
-    acname = request.GET.get('account_name')
 
-    data = []
-
-    cqrange = ledger_chequebook.objects.filter(ledger_name = acname).values() if ledger_chequebook.objects.filter(ledger_name = acname).exists() else None
-    start = 0 if cqrange is None else cqrange[0]['from_number']  
-    end = 0 if cqrange is None else cqrange[0]['to_number'] 
-    q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque').values('instno').last()
-    chqnum = 0 if q is None else q['instno']
-    #print(chqnum)
-    if chqnum < end:
-        chqnum = start if q is None else (int(q['instno']) + 1)
-    else:
-        chqnum = 0
-    
-    
-    data.append(start)
-    data.append(end)
-    data.append(chqnum)  
-    #print(chqnum)
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
         
-    return JsonResponse(data,safe=False)
+        comp = Companies.objects.get(id = t_id)
+    
+        acname = request.GET.get('account_name')
+
+        data = []
+
+        cqrange = ledger_chequebook.objects.filter(ledger_name = acname,company = comp ).values() if ledger_chequebook.objects.filter(ledger_name = acname,company = comp).exists() else None
+        start = 0 if cqrange is None else cqrange[0]['from_number']  
+        end = 0 if cqrange is None else cqrange[0]['to_number'] 
+        q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque',company = comp).values('instno').last()
+        chqnum = 0 if q is None else q['instno']
+        #print(chqnum)
+        if chqnum < end:
+            chqnum = start if q is None else (int(q['instno']) + 1)
+        else:
+            chqnum = 0
+        
+        
+        data.append(start)
+        data.append(end)
+        data.append(chqnum)  
+        #print(chqnum)
+            
+        return JsonResponse(data,safe=False)
 
 def bank_transcation(request):
-    
-    if request.method == 'POST':
-        id = request.POST.get('id')
-        vouch_name = request.POST.get('vouch_type')
-        partacc = request.POST.get('part')
-        bacc = request.POST.get('bacc')
-        t_type = request.POST.get('t_type')
-        instno = request.POST.get('instnum')
-        instdate = request.POST.get('instdate')
-        acnum = request.POST.get('efaccnum')
-        ifsc = request.POST.get('efifs')
-        bname = request.POST.get('efbank')
-        amount = request.POST.get('amount')
-
-        vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip())
-
-        print(vouch_type)
-
-        if vouch_type.voucher_type == 'Payment':
-            bank_transcations(voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
-                                transcation_type = t_type,instno = instno,instdate = instdate,
-                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-            
-        elif vouch_type.voucher_type == 'Receipt':
-
-            bank_transcations(voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
-                                transcation_type = t_type,instno = instno,instdate = instdate,
-                                amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
-
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
         
-        return HttpResponse({"message": "success"})
+        comp = Companies.objects.get(id = t_id)
+
+        if request.method == 'POST':
+            id = request.POST.get('id')
+            vouch_name = request.POST.get('vouch_type')
+            partacc = request.POST.get('part')
+            bacc = request.POST.get('bacc')
+            t_type = request.POST.get('t_type')
+            instno = request.POST.get('instnum')
+            instdate = request.POST.get('instdate')
+            acnum = request.POST.get('efaccnum')
+            ifsc = request.POST.get('efifs')
+            bname = request.POST.get('efbank')
+            amount = request.POST.get('amount')
+
+            vouch_type = Voucher.objects.get(voucher_name = vouch_name.strip(),company = comp)
+
+            # print(vouch_type)
+
+            if vouch_type.voucher_type == 'Payment':
+
+                bank_transcations(company = comp ,voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
+                                    transcation_type = t_type,instno = instno,instdate = instdate,
+                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+                
+            elif vouch_type.voucher_type == 'Receipt':
+
+                bank_transcations(company = comp, voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
+                                    transcation_type = t_type,instno = instno,instdate = instdate,
+                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+
+            
+            return HttpResponse({"message": "success"})
     
 
 
@@ -15287,7 +15367,7 @@ def listofbankledgers(request):
         data=CreateStockGrp.objects.filter(comp = t_id)
 
         ledg = tally_ledger.objects.filter(company = t_id, under__in = ['Bank_Accounts','Bank_OCC_AC','Bank_OD_A/c'])
-        print(ledg)
+        
         context={
                     'data':data, 
                     'ledg' : ledg,
@@ -15304,14 +15384,22 @@ def bank_reconciliation(request, pk):
             return redirect('/')
         
         comp = Companies.objects.get(id = t_id)
-        ledger = tally_ledger.objects.get(company = t_id,id = pk)
+        ledger = tally_ledger.objects.get(company = comp,id = pk)
 
-        # start_date =comp.fin_begin
-        # end_date = comp.fin_end
+        bank_tr = bank_transcations.objects.filter(company = comp,bank_account = ledger.name ).values()
+        for b in bank_tr:
+            b['date'] = payment_voucher.objects.get(pid = b['pay_voucher']).date
+            b['particular'] = payment_particulars.objects.get(particular_id = b['pay_particular']).particular
+            b['vouch_type'] = Voucher.objects.get(id = b['voucher_id']).voucher_name
+
+            # print(vouch)
+            # print(pay)
+            # print(pay_part)
 
         context = {
                     'company' : comp,
                     'ledger' : ledger,
+                    'bank' : bank_tr,
                  }
         return render(request,'bank_reconciliation.html',context)
 

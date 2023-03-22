@@ -87,24 +87,35 @@
                     <th colspan="1" class="text-center border-left" style="border-right: none; border-left: none;">Credit</th>
                 </tr>
 
-                <!--<tbody style="border: solid 0.5px rgba(255, 255, 255, .2);">
-                    {% for i in item %}
+                <tbody style="border: solid 0.5px rgba(255, 255, 255, .2);">
+                    {% for i in bank %}
                     <tr>
-                        <td colspan="17" class="text-white" style="border-right: none; border-left: none;">
-                            <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.name }}
+                        <td colspan="1" class="text-white" style="border-right: none; border-left: none;">
+                            <a href="">{{ i.date | date:'d-M-Y' }}</a>
                         </td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">
-                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{i.total_qty}} {{i.units}}</a></td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">
-                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.rate }}</a></td>
-                        <td class="text-center text-white" style="border-right: none; border-left: none;">
-                          <a href="{% url 'stock_item_monthly_summary' i.id %}">{{ i.total_val }}</a></td>
+                        <td colspan = "3" class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="">{{i.particular}}</a></td>
+                        <td colspan = "3" class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="">{{ i.vouch_type }}</a></td>
+                        <td colspan = "3" class="text-center text-white" style="border-right: none; border-left: none;">
+                          <a href="">{{ i.transcation_type  }}</a></td>
+                          <td colspan="3" class="text-center text-white" style="border-right: none; border-left: none;">
+                            <a href="">{{ i.instno }}</a></td>
+                            <td colspan="3" class="text-center text-white" style="border-right: none; border-left: none;">
+                              <a href="">{{ i.instdate  }}</a></td>
+                              
+                              <td colspan="2" class="text-center text-white" style="border-right: none; border-left: none;">
+                                <input type="date"></td>
+                                <td colspan="2" class="text-center text-white" style="border-right: none; border-left: none;">
+                                  <a href=""></a></td>
+                                  <td colspan="1" class="text-center text-white" style="border-right: none; border-left: none;">
+                                    <a href=""></a></td>
 
                     </tr>
                     {% endfor %}
 
                 </tbody>
-                <tfoot style="border-top:solid 0.5px rgba(255, 255, 255, .2) ;">
+                <!--<tfoot style="border-top:solid 0.5px rgba(255, 255, 255, .2) ;">
                   <tr>
                     <td style="border-right: none; border-left: none;" colspan="17" class="text-center" style="font-weight: bold;">
                       Grand Total
