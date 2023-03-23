@@ -13377,14 +13377,13 @@ def list_payment_voucher(request):
         
         comp = Companies.objects.get(id = t_id)
         ledger = tally_ledger.objects.filter(company_id = comp)
-        for i in range(len(ledger)):
+        # for i in range(len(ledger)):
             
-            if ledger[i].current_blnc is None:
-                ledger[i].current_blnc = ledger[i].opening_blnc
-                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
+        #     if ledger[i].current_blnc is None:
+        #         ledger[i].current_blnc = ledger[i].opening_blnc
+        #         ledger[i].current_blnc_type = ledger[i].opening_blnc_type
 
-                ledger[i].save()
-        #print(ledger)
+        #         ledger[i].save()
         
         voucher = Voucher.objects.filter(voucher_type = 'Payment',company = comp)
         context = {
@@ -13454,7 +13453,7 @@ def create_payment_voucher(request):
             amounts = request.POST.getlist("amnt[]")
 
             
-
+        
         payment_voucher(company = comp, pid = pid,account = accnt[1],date = date1 , amount = amount , narration = nrt ,voucher = vouch).save()
 
         pay_vouch=payment_voucher.objects.get(pid=payment_voucher.objects.all().last().pid,company = comp)
@@ -13471,7 +13470,8 @@ def create_payment_voucher(request):
             # print(mapped)
             for m in mapped:
 
-                payment_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], pay_voucher = pay_vouch)
+
+                payment_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], pay_voucher = pay_vouch,company = comp)
         
         
         
@@ -13487,14 +13487,14 @@ def list_receipt_voucher(request):
 
         comp = Companies.objects.get(id = t_id)
         ledger = tally_ledger.objects.filter(company_id = comp)
-        for i in range(len(ledger)):
-            #print(ledger[i])
+        # for i in range(len(ledger)):
+        #     #print(ledger[i])
             
-            if ledger[i].current_blnc is None:
-                ledger[i].current_blnc = ledger[i].opening_blnc
-                ledger[i].current_blnc_type = ledger[i].opening_blnc_type
+        #     if ledger[i].current_blnc is None:
+        #         ledger[i].current_blnc = ledger[i].opening_blnc
+        #         ledger[i].current_blnc_type = ledger[i].opening_blnc_type
 
-                ledger[i].save()
+        #         ledger[i].save()
 
         voucher = Voucher.objects.filter(voucher_type = 'Receipt',company = comp)
         context = {
@@ -13581,7 +13581,7 @@ def create_receipt_voucher(request):
             particular=zip(particulars,particulars_id,amounts)
             mapped=list(particular)
             for m in mapped:
-                receipt_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], rec_voucher = rec_vouch)
+                receipt_particulars.objects.get_or_create(particular =m[0],particular_id =m[1] ,amount = m[2], rec_voucher = rec_vouch,company = comp)
                 
                 
 
@@ -13632,9 +13632,6 @@ def cur_balance_change(request):
             val = int(i) + int(j)
             cur_type = 'Cr'
 
-        #print(val) 
-        #print(open_type)
-
         ledger = tally_ledger.objects.get(id = ac,company = comp)
 
 
@@ -13643,8 +13640,6 @@ def cur_balance_change(request):
         ledger.current_blnc_type = cur_type
         ledger.save()
     
-        #print(ledger)
-        
         context = {'val' : val,'cur_type': cur_type, 'ledger' : ledger }
         
         return render(request,'curbalance_change.html', context)
@@ -13762,8 +13757,8 @@ def cheque_range(request):
         
         comp = Companies.objects.get(id = t_id)
     
-        acname = request.GET.get('account_name')
-
+        acname = request.POST.get('account_name')
+        print(acname)
         data = []
 
         cqrange = ledger_chequebook.objects.filter(ledger_name = acname,company = comp ).values() if ledger_chequebook.objects.filter(ledger_name = acname,company = comp).exists() else None
@@ -13771,7 +13766,7 @@ def cheque_range(request):
         end = 0 if cqrange is None else cqrange[0]['to_number'] 
         q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque',company = comp).values('instno').last()
         chqnum = 0 if q is None else q['instno']
-        #print(chqnum)
+        print(chqnum)
         if chqnum < end:
             chqnum = start if q is None else (int(q['instno']) + 1)
         else:
@@ -13781,7 +13776,7 @@ def cheque_range(request):
         data.append(start)
         data.append(end)
         data.append(chqnum)  
-        #print(chqnum)
+        # print(chqnum)
             
         return JsonResponse(data,safe=False)
 
@@ -15367,7 +15362,7 @@ def listofbankledgers(request):
         data=CreateStockGrp.objects.filter(comp = t_id)
 
         ledg = tally_ledger.objects.filter(company = t_id, under__in = ['Bank_Accounts','Bank_OCC_AC','Bank_OD_A/c'])
-        
+
         context={
                     'data':data, 
                     'ledg' : ledg,
@@ -15387,21 +15382,42 @@ def bank_reconciliation(request, pk):
         ledger = tally_ledger.objects.get(company = comp,id = pk)
 
         bank_tr = bank_transcations.objects.filter(company = comp,bank_account = ledger.name ).values()
+        ctotal = dtotal = ct = dt =0
         for b in bank_tr:
-            b['date'] = payment_voucher.objects.get(pid = b['pay_voucher']).date
-            b['particular'] = payment_particulars.objects.get(particular_id = b['pay_particular']).particular
-            b['vouch_type'] = Voucher.objects.get(id = b['voucher_id']).voucher_name
 
-            # print(vouch)
-            # print(pay)
-            # print(pay_part)
+            vouch = Voucher.objects.get(id = b['voucher_id'])
+            b['vouch_name'] = vname= vouch.voucher_name
+            b['voucher_type'] = vouch.voucher_type
+            
+            if vname == 'Payment':
+                # print( payment_voucher.objects.filter(pid = b['pay_voucher'],company = comp).values('date')[0]['date'])
+                b['date'] =  payment_voucher.objects.filter(pid = b['pay_voucher'],company = comp).values('date')[0]['date']
+                b['particular'] = payment_particulars.objects.filter(particular_id = b['pay_particular'],company = comp).values('particular')[0]['particular']
 
+                b['credit'] = b['amount']
+                ctotal += b['amount']
+            else:
+                b['date'] =  receipt_voucher.objects.filter(rid = b['rec_voucher'],company = comp).values('date')[0]['date']
+                b['particular'] = receipt_particulars.objects.filter(particular_id = b['rec_particular'],company = comp).values('particular')[0]['particular']
+
+                b['debit'] = b['amount']
+                dtotal += b['amount']
+
+        ct = ctotal
+        dt = dtotal
+        
+        if ledger.current_blnc_type == 'Dr':
+            bank_blnc = ledger.current_blnc + ctotal - dtotal
+
+        else:
+            bank_blnc = ledger.current_blnc + dtotal - ctotal
+            
         context = {
                     'company' : comp,
                     'ledger' : ledger,
                     'bank' : bank_tr,
+                    'ctotal': ct,
+                    'dtotal' : dt,
+                    'balance' : bank_blnc,
                  }
         return render(request,'bank_reconciliation.html',context)
-
-         
-   

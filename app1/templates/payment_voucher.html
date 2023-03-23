@@ -758,6 +758,8 @@ function showTransaction(){
         url: '{% url "cheque_range" %}',
         data: {
                 'account_name' : $("#chacc").text(),
+                 csrfmiddlewaretoken: '{{ csrf_token }}'
+
         },
         success: function (data) {
             //console.log(data)

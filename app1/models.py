@@ -1759,7 +1759,7 @@ class payment_voucher(models.Model):
 
 class payment_particulars(models.Model):
     pay_voucher = models.ForeignKey(payment_voucher,on_delete=models.CASCADE,null=True,blank=True)
-
+    company = models.ForeignKey(Companies,on_delete=models.CASCADE,null=True,blank=True)
     particular_id = models.IntegerField(null= True)
     particular = models.CharField(max_length = 100,null=True,blank=True)
     amount =  models.IntegerField(null= True)
@@ -1778,6 +1778,7 @@ class receipt_voucher(models.Model):
     narration = models.CharField(max_length=255,null=True)
 
 class receipt_particulars(models.Model):
+    company = models.ForeignKey(Companies,on_delete=models.CASCADE,null=True,blank=True)
     rec_voucher = models.ForeignKey(receipt_voucher,on_delete=models.CASCADE,null=True,blank=True)
 
     particular_id = models.IntegerField(null= True)
