@@ -38,7 +38,12 @@
         .table-row1:hover{
             background-color: rgb(216, 155, 51);
         }    
-          
+        .btn{
+        color: azure;
+        background-color: rgb(17, 28, 35);
+        width: 200px;
+        justify-content: center;
+    }  
 
     </style>
 
@@ -87,9 +92,10 @@
                     <th colspan="2" class="text-center  "style="border-right: none; border-left: none;">Credit</th>
                 </tr>
 
-                <tbody style="border: solid 0.5px rgba(255, 255, 255, .2);">
+                <tbody style="border: solid 0.5px rgba(255, 255, 255, .2);" >
                     {% for i in bank %}
-                    <tr>
+                    <input type="hidden" id="bankid{{forloop.counter}}" value=" {{i.id}}">
+                    <tr id = "row{{forloop.counter}}" class="rowss">
                         <td colspan="1" class="text-white" style="border-right: none; border-left: none;">
                             <a href="">{{ i.date | date:'d-M-Y' }}</a>
                         </td>
@@ -105,7 +111,7 @@
                               <a href="">{{ i.instdate | date:'d-M-Y' }}</a></td>
                               
                               <td colspan="1" class="text-center text-white" style="border-right: none; border-left: none;">
-                                <input type="date" onchange="" style="background-color: rgba(33,57,77); color: aliceblue; border: none;">
+                                <input type="date" id = 'bankdate{{forloop.counter}}' style="background-color: rgba(33,57,77); color: aliceblue; border: none;">
                               </td>
                                 <td colspan="2" class="text-center text-white" style="border-right: none; border-left: none;">
                                   <a href="">{{i.debit}}</a></td>
@@ -160,6 +166,12 @@
                     <td colspan="2" class="text-center" style="border-right: none; border-left: none;">{{balance}}</td>
                     {% endif %}
                   </tr>
+                  <tr></tr>
+                  <tr>
+                    <td colspan="20" class="text-center">
+                      <button type = 'submit' class="btn  w-30" id = 'mainform' onclick="removeRow();">SAVE</button></div>    
+                    </td>
+                  </tr>
                 </tfoot>
             </table>
         </div>
@@ -168,7 +180,56 @@
     </div>
 </body>
 
+<script>
 
+
+  $(document).ready(function() {
+    $("#mainform").click(function() {
+
+      var count = $(".rowss").length;
+      console.log(count);
+      for (var i = 1; i <= count; i++) {
+          var bankid = $("#bankid"+i).val();
+          var inputValue = $("#bankdate"+i).val();
+          var timestamp = Date.parse(inputValue);
+          console.log(bankid)
+
+          if (isNaN(timestamp)) {
+            console.log('No date change');
+          } 
+          else {
+
+            $.ajax({
+
+                    type : 'POST',
+                    url: '{% url "bank_recon_date" %}',
+                    data: {
+                            'id' : bankid,
+                            'num': timestamp,
+                             csrfmiddlewaretoken: '{{ csrf_token }}'
+
+                        },
+              
+                    success: function (data) {
+                  
+                    // $("#blnc"+(id-1)).html(data);
+                    console.log(data);
+                    
+              }
+            });
+            document.getElementById("row"+i).remove();
+            i--;
+            location.reload();
+          }
+        
+      }
+     
+    });
+  });
+
+
+
+</script>
 
 
 {% endblock %}

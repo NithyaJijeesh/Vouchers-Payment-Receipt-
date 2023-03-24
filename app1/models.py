@@ -1804,6 +1804,7 @@ class bank_transcations(models.Model):
     acnum = models.CharField(max_length=255,null=True,blank=True)
     ifscode = models.CharField(max_length=255,null=True,blank=True)
     bank_name = models.CharField(max_length=255,null=True,blank=True)
+    bank_recon_date = models.CharField(max_length=255,null=True,blank=True)
 
 
 #---------------------stock summary------------------

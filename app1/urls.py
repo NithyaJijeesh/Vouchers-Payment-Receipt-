@@ -878,5 +878,5 @@ urlpatterns = [
 
     path('listofbankledgers' ,views.listofbankledgers, name= 'listofbankledgers'),
     path('bank_reconciliation/<pk>' ,views.bank_reconciliation, name= 'bank_reconciliation'),
-
+    path('bank_recon_date',views.bank_recon_date,name = 'bank_recon_date')
 ]

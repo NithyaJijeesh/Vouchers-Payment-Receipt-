@@ -13810,13 +13810,13 @@ def bank_transcation(request):
 
                 bank_transcations(company = comp ,voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
                                     transcation_type = t_type,instno = instno,instdate = instdate,
-                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname,bank_recon_date = 'No').save()
                 
             elif vouch_type.voucher_type == 'Receipt':
 
                 bank_transcations(company = comp, voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
                                     transcation_type = t_type,instno = instno,instdate = instdate,
-                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname).save()
+                                    amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname,bank_recon_date = 'No').save()
 
             
             return HttpResponse({"message": "success"})
@@ -15381,7 +15381,7 @@ def bank_reconciliation(request, pk):
         comp = Companies.objects.get(id = t_id)
         ledger = tally_ledger.objects.get(company = comp,id = pk)
 
-        bank_tr = bank_transcations.objects.filter(company = comp,bank_account = ledger.name ).values()
+        bank_tr = bank_transcations.objects.filter(company = comp,bank_account = ledger.name ,bank_recon_date = 'No').values()
         ctotal = dtotal = ct = dt =0
         for b in bank_tr:
 
@@ -15421,3 +15421,23 @@ def bank_reconciliation(request, pk):
                     'balance' : bank_blnc,
                  }
         return render(request,'bank_reconciliation.html',context)
+    
+def bank_recon_date(request):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        id = request.POST.get('id')
+        print(id)
+        num = request.POST.get('num')
+        bank_trn = bank_transcations.objects.get(id = id)
+        if int(num) > 0:
+            bank_trn.bank_recon_date = 'Yes'
+            bank_trn.save()
+        else:
+            pass
+
+        
+        return HttpResponse({"message": "success"})
