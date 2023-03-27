@@ -31,23 +31,18 @@
             <div class="row ms-1" >
                 <a href="{% url 'load_stock_group' %}"  class="text-end text-white" style="text-decoration: none;">Create</a>
             </div>
-            
-            <!-- <div class="row ms-1 my-2" id="demoos">
-                 <a href="{% url 'stock_ageing_primary'  %}" class="text-decoration-none list-unstyled text-white py-1">Primary</a>
-                
-            </div>      -->
-            
             {% for i in data %}
-                {% if i.name == 'Primary' %}
+
+            {% if i.name == 'Primary' %}
                 <div class="row ms-1 my-2" id="demoos">
                     <a href="{% url 'stock_ageing_primary'  %}" class="text-decoration-none list-unstyled text-white py-1">{{i.name}}</a>
-                   
-               </div> 
-               {% else %}
+                    
+                </div>
+            {% else %}
                 <div class="row ms-1 my-2" id="demoos">
                     <a href="{% url 'stock_ageing' i.id %}"  class="text-decoration-none list-unstyled text-white py-1">{{ i.name }}</a>
-                </div>    
-                {% endif %}
+                </div>  
+            {% endif %} 
             {% endfor %}
             
         </div>
