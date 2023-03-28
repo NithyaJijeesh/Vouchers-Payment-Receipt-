@@ -48,28 +48,31 @@ def login(request):
 
         if Companies.objects.filter(email=request.POST['email'], password=request.POST['password']).exists():
                 
-                member=Companies.objects.get(email=request.POST['email'], password=request.POST['password'])
-                request.session['t_id'] = member.id 
-                tally=Companies.objects.filter(id= member.id)
-                t = tally.values('fin_begin')[0]['fin_begin']
-                latestdate = []
+            member=Companies.objects.get(email=request.POST['email'], password=request.POST['password'])
+            request.session['t_id'] = member.id 
 
-                pay = payment_voucher.objects.filter(company = member.id).last().date if payment_voucher.objects.filter(company = member.id).exists() else t
+            tally=Companies.objects.filter(id= member.id)
+            
+            comp = Companies.objects.get(id=member.id)
+            latestdate = []
 
-                rec = receipt_voucher.objects.filter(company = member.id).last().date if receipt_voucher.objects.filter(company = member.id).exists() else t
+            pay = payment_voucher.objects.filter(company = comp).last().date if payment_voucher.objects.filter(company = comp).exists() else comp.fin_begin
 
-                cred = credit_note.objects.filter(comp = member.id).last().creditdate if credit_note.objects.filter(comp = member.id).exists() else t
+            rec = receipt_voucher.objects.filter(company = comp).last().date if receipt_voucher.objects.filter(company = comp).exists() else comp.fin_begin
 
-                deb = debit_note.objects.filter(comp = member.id).last().debitdate if debit_note.objects.filter(comp = member.id).exists() else t
-                
-                latestdate.extend((pay,rec,cred,deb))
+            cred = credit_note.objects.filter(comp = comp).last().creditdate if credit_note.objects.filter(comp = comp).exists() else comp.fin_begin
 
-                
-                context = {
-                            'tally' : tally,
-                            'latestdate' : max(latestdate),
-                            }
-                return render(request,'base.html',context)
+            deb = debit_note.objects.filter(comp = comp).last().debitdate if debit_note.objects.filter(comp = comp).exists() else comp.fin_begin
+
+            latestdate.extend((pay,rec,cred,deb))
+        
+            context = { 
+                        'company' : comp,
+                        'tally' : tally,
+                'latestdate' : max(latestdate),
+                }
+
+            return render(request,'base.html',context)
     
         else:
             context = {'msg_error': 'Invalid data'}
@@ -93,30 +96,29 @@ def base(request):
             t_id = request.session['t_id']
         else:
             return redirect('/')
-        tally = Companies.objects.filter(id=t_id)
-        t = tally.values('fin_begin')[0]['fin_begin']
-        print(t)
+        tally = Companies.objects.filter(id = t_id)
+
+        comp = Companies.objects.get(id=t_id)
         latestdate = []
 
-        pay = payment_voucher.objects.filter(company = t_id).last().date if payment_voucher.objects.filter(company = t_id).exists() else t
+        pay = payment_voucher.objects.filter(company = comp).last().date if payment_voucher.objects.filter(company = comp).exists() else comp.fin_begin
 
-        rec = receipt_voucher.objects.filter(company = t_id).last().date if receipt_voucher.objects.filter(company = t_id).exists() else t
+        rec = receipt_voucher.objects.filter(company = comp).last().date if receipt_voucher.objects.filter(company = comp).exists() else comp.fin_begin
 
-        cred = credit_note.objects.filter(comp = t_id).last().creditdate if credit_note.objects.filter(comp = t_id).exists() else t
+        cred = credit_note.objects.filter(comp = comp).last().creditdate if credit_note.objects.filter(comp = comp).exists() else comp.fin_begin
 
-        deb = debit_note.objects.filter(comp = t_id).last().debitdate if debit_note.objects.filter(comp = t_id).exists() else t
+        deb = debit_note.objects.filter(comp = comp).last().debitdate if debit_note.objects.filter(comp = comp).exists() else comp.fin_begin
 
         latestdate.extend((pay,rec,cred,deb))
-        print(pay)
-        print(deb)
-        print(cred)
-        print(rec)
-        context = {
+       
+        context = { 
+                    'company' : comp,
                     'tally' : tally,
                     'latestdate' : max(latestdate),
                     }
 
         return render(request, 'base.html',context)
+    
     return redirect("/")
 
 #......................jisha........................
@@ -14695,7 +14697,7 @@ def stock_ageing(request,pk):
                     days1 = (date.today()-v.date).days
 
                     
-                    if v.Voucher_type == 'Sales':
+                    if v.Voucher_type == 'Sales' or v.Voucher_type == 'Credit_Note':
                         
                         if days1 < 45:
                             sales_qty_lt_45 = 0 if v.outwards_qty is None else v.outwards_qty
@@ -14725,7 +14727,7 @@ def stock_ageing(request,pk):
                             total_sales_qty += sales_qty_gt_180
                             total_sales_val += sales_val_gt_180
                         
-                    elif v.Voucher_type == 'Purchase':
+                    elif v.Voucher_type == 'Purchase' or v.Voucher_type == 'Debit_Note':
 
                         if days1 < 45:
 
@@ -14906,9 +14908,9 @@ def stock_ageing_primary(request):
             return redirect('/')
 
         comp = Companies.objects.get(id=t_id)
-        grp = CreateStockGrp.objects.filter(under_name = 'Primary',comp = t_id).values('id')
+        grp = CreateStockGrp.objects.filter(under_name = 'Primary',comp = comp).values('id')
 
-        item = stock_itemcreation.objects.filter(under_id__in = grp,company = t_id).values()
+        item = stock_itemcreation.objects.filter(under_id__in = grp,company = comp).values()
             
         start_date =comp.fin_begin
         end_date = date.today()
@@ -14947,7 +14949,7 @@ def stock_ageing_primary(request):
                         days1 = (date.today()-v.date).days
 
                         
-                        if v.Voucher_type == 'Sales':
+                        if v.Voucher_type == 'Sales'or v.Voucher_type == 'Credit_Note':
                             
                             if days1 < 45:
                                 sales_qty_lt_45 = 0 if v.outwards_qty is None else v.outwards_qty
@@ -14978,7 +14980,7 @@ def stock_ageing_primary(request):
                                 total_sales_val += sales_val_gt_180
                             
                             
-                        elif v.Voucher_type == 'Purchase':
+                        elif v.Voucher_type == 'Purchase' or v.Voucher_type == 'Debit_Note':
 
                             if days1 < 45:
 
@@ -15193,7 +15195,7 @@ def stock_monthly(request,pk):
                         total_outqty += out_qty
                         total_outval += out_val
 
-                        if v.Voucher_type == 'Purchase' | 'Debit_Note':
+                        if v.Voucher_type == 'Purchase' or v.Voucher_type == 'Debit_Note':
                             mnth['total_inqty'] = total_inqty
                             mnth['total_inval'] = total_inval
                         else:
@@ -15215,7 +15217,7 @@ def stock_monthly(request,pk):
             
             last_qty = total_qty
             last_val = total_val
-
+        print(new_date)
         
         context = {
                     'company' : comp,
@@ -15251,10 +15253,10 @@ def stock_item_vouchers(request,pk,id):
         voucher = stock_item_voucher.objects.filter(item_id = item.id,company = t_id)
 
         for v in voucher:
-            if v.Voucher_type == 'Debit_Note':
+            if v.Voucher_type == 'Debit_Note' or v.Voucher_type == 'Purchase':
                 inwards_value = v.inwards_qty * v.rate 
                 v.inwards_val = inwards_value 
-            elif v.Voucher_type == 'Credit_Note':
+            elif v.Voucher_type == 'Credit_Note' or v.Voucher_type == 'Sales':
                 outwards_value = v.outwards_qty * v.rate 
                 v.outwards_val = outwards_value
 
@@ -15290,9 +15292,11 @@ def stock_item_vouchers(request,pk,id):
             sum_in_val += in_val
             sum_out_qty += out_qty
             sum_out_val += out_val
-            
+
+            vouchdate = v.date
+        print(vouchdate)
         m =  int(datetime.strptime(mnth.month_name, '%B').month)
-        y = int(v.date.strftime('%Y'))
+        y = int(vouchdate.strftime('%Y'))
         beg_date = datetime(y,m,1).date().strftime('1-%b-%y')
 
         if mnth.month_name != 'December':
@@ -15317,7 +15321,7 @@ def stock_item_vouchers(request,pk,id):
                     'end_date' : end_date
                   }
     
-        return render(request,'stock_item_voucher.html',context)
+        return render(request,'stock_item_vouchers.html',context)
 
 def item_inwards(request,pk,d1,d2):
 
@@ -15328,11 +15332,10 @@ def item_inwards(request,pk,d1,d2):
             return redirect('/')
 
         comp = Companies.objects.get(id=t_id)
-        item = stock_itemcreation.objects.get(id = pk,company = t_id)
+        item = stock_itemcreation.objects.get(id = pk,company = comp)
 
-        voucher = stock_item_voucher.objects.filter(date__range = [d1,d2],Voucher_type = 'Purchase',item_id = item.id,company = t_id)
+        voucher = stock_item_voucher.objects.filter(date__range = [d1,d2],Voucher_type__in= ('Purchase', 'Debit_Note'),item_id = item.id,company = comp)
         qty = int(item.quantity)
-        #rate = int(item.rate)
         val = int(item.value)
 
         first_date = datetime.strptime(d1,'%Y-%m-%d').date()
@@ -15343,7 +15346,6 @@ def item_inwards(request,pk,d1,d2):
 
         for v in voucher:
             qty += 0 if v.inwards_qty is None else v.inwards_qty
-            #rate += 0 if v.inwards_qty is None else v.rate
             val += 0 if v.inwards_val is None else v.inwards_val
             
 
@@ -15400,7 +15402,6 @@ def bank_reconciliation(request, pk):
             b['voucher_type'] = vouch.voucher_type
             
             if vname == 'Payment':
-                # print( payment_voucher.objects.filter(pid = b['pay_voucher'],company = comp).values('date')[0]['date'])
                 b['date'] =  payment_voucher.objects.filter(pid = b['pay_voucher'],company = comp).values('date')[0]['date']
                 b['particular'] = payment_particulars.objects.filter(particular_id = b['pay_particular'],company = comp).values('particular')[0]['particular']
 
