@@ -69,13 +69,7 @@
     .hide{
         display: none;
     }
-    .enter{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgb(124, 186, 224);
-}
-
+   
 
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
@@ -719,10 +713,7 @@ function showTransaction(){
     var id = $('#payacc').val();
     var val_name = id. split(",")[1];
     var val_under = id.split(",")[2];
-    // console.log(id)
     var value1,e;
-    // console.log(val_name);
-    // console.log(val_under);
 
     if (val_under.trim() === "Bank_Accounts"){
 
@@ -734,7 +725,6 @@ function showTransaction(){
         for(var i = 1; i <= count; i++) {
 
             value1 = document.getElementById("amnt" + i).value;
-            // $("#amntchange"+i).val(value1);
             document.getElementById('onacc'+i).innerHTML = "On Account";
             document.getElementById('onacc'+i).style.display = "block";
             part = document.getElementById("payacc" + i).value;
@@ -776,7 +766,6 @@ function showTransaction(){
 
         },
         success: function (data) {
-            //console.log(data)
             if(data[0] != 0){
                 chrange = '<label>&nbsp;&nbsp;&nbsp;&nbsp;'+data[0]+'</label><label>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;</label><label>'+ data[1]+'</label>'
             }
@@ -813,16 +802,12 @@ function showTransaction(){
   
     const vouch_id = $('#idlbl').val();
     const vouchtype = $('#vouchtype').text();
-    console.log(vouch_id);
-    console.log(vouchtype);
-    console.log($("#partid").val());
     
-
     if ($("#t_type").text() === 'Cheque'){
 
         $.ajax({
                     type : 'POST',
-                    url:"{% url 'bank_transcation' %}",
+                    url:"{% url 'bank_transaction' %}",
                 
                     data:{
                         
@@ -856,21 +841,21 @@ function showTransaction(){
 
         $.ajax({
                     type : 'POST',
-                    url:"{% url 'bank_transcation' %}",
+                    url:"{% url 'bank_transaction' %}",
                 
                     data:{
-                        id : vouch_id,
-                        vouch_type : vouchtype,
-                        part : $("#partid").val(),
-                        bacc : $("#efacc").text(),
-                        t_type : $("#t_type").text(),
-                        instnum:$("#efnum").val(),
-                        instdate :$("#efdate").val(),
-                        efaccnum :$("#efaccnum").val(),
-                        efifs :$("#efifs").val(),
-                        efbank : $("#efbank").val(),
-                        amount :$("#efamnt").text(),
-                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                            id : vouch_id,
+                            vouch_type : vouchtype,
+                            part : $("#partid").val(),
+                            bacc : $("#efacc").text(),
+                            t_type : $("#t_type").text(),
+                            instnum:$("#efnum").val(),
+                            instdate :$("#efdate").val(),
+                            efaccnum :$("#efaccnum").val(),
+                            efifs :$("#efifs").val(),
+                            efbank : $("#efbank").val(),
+                            amount :$("#efamnt").text(),
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
                         
                     },
                     
@@ -887,7 +872,7 @@ function showTransaction(){
         // console.log($("#partid").val());
         $.ajax({
                     type : 'POST',
-                    url:"{% url 'bank_transcation' %}",
+                    url:"{% url 'bank_transaction' %}",
                 
                     data:{
                         id : vouch_id,

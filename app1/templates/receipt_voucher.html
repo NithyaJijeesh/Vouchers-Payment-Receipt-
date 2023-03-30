@@ -836,7 +836,7 @@ if ($("#t_type").text() === 'Cheque'){
 
     $.ajax({
                 type : 'POST',
-                url:"{% url 'bank_transcation' %}",
+                url:"{% url 'bank_transaction' %}",
             
                 data:{
                     id : vouch_id, 
@@ -869,7 +869,7 @@ else if($("#t_type").text() === 'e-Fund Transfer'){
 
     $.ajax({
                 type : 'POST',
-                url:"{% url 'bank_transcation' %}",
+                url:"{% url 'bank_transaction' %}",
             
                 data:{
                     id : vouch_id, 
@@ -900,7 +900,7 @@ else{
 
     $.ajax({
                 type : 'POST',
-                url:"{% url 'bank_transcation' %}",
+                url:"{% url 'bank_transaction' %}",
             
                 data:{
                     id : vouch_id, 

@@ -5,11 +5,7 @@
 
 
         
-        .enter{
-            display: flex;
-            align-items: center;
-            justify-content: center;   
-        }
+        
         .close {
             position: absolute;
             top: 3px;
@@ -59,6 +55,20 @@
         .hide{
             display: none;
         }
+        .modal #godownmodal{
+            width: 500px;
+            text-align: center;    
+            margin-top: 100px;
+        }
+        .modal-content{
+            position: relative;
+            color:rgb(17, 54, 86) ;
+            width: 800px;
+            height: 350px;
+            border-radius: 10px;
+            margin-top: 100px;
+            margin-left: 30px;
+        }
 
         
     </style>
@@ -107,11 +117,11 @@
                     <div class="row container-fluid  p-2">
                         <div class="col-sm-6 m-0 p-0"> <label for="e">Units</label></div>
                         <div class="col-sm-6 m-0 p-0">
-                            <input type="text"  id="units" onblur="showunits()" name="units" class="form-control" onclick="showform1();">
+                            <input type="text"  id="units"  name="units" class="form-control" onclick="showform1();">
                         </div>
                     </div>
                     <div class="row container-fluid p-2">
-                        <div class="col-sm-6 m-0 p-0"><label for="e">Enable Godown</label></div>
+                        <div class="col-sm-6 m-0 p-0"><label for="e" >Enable Godown</label></div>
                         <div class="col-sm-6 m-0 p-0">
                             <select name="" id="gt" class="form-control" onchange="showgodown();">
                                 <option value="No">No</option>
@@ -289,186 +299,69 @@
         </form>     
     </div>
 
-    <div class="modal fade" id="godownmodal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content" style="background-color: #213b52; color:azure;">
-                <div class="row bg-info text-light p-2 m-0">
-                    <div class="col-md-6"><b>Stock Item Allocation</b></div>
-                    <div class="col-md-6">
-                        {% for i in tally %}
-                        {{i.name}}
-                    {% endfor %}
-                    </div>
-                </div>
-                <div class="modal-header">
-                    <!-- <div class="row container m-0 p-2"> -->
-                        <div class="col-10 text-align-center">
-                        
-                            <label>Allocation for &nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label>
-                            <label id ='stckitem' name = 'stckitem' class="font-weight-bold font-italic"></label><br>
-                            <label>For  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label>
-                            <label id = 'stckamt'></label>
-                        </div>
-                        <div class="col">
-                            <button type="button" class="close align-items-end" data-dismiss="modal" >&times;</button>
-                        </div>
-                        
-                    <!-- </div> -->
-                </div>
-                
-                <div class="modal-body">
-                    <form class=" 100vw" id = 'modalForm' action="" method='post' >
 
-                        {% csrf_token %}
-                        <div class="table-responsive-sm" style="background-color:rgba(0,0,0,0.4);">
-                            <table class="w-100 table text-center" border="1">
-                                <tr>
-                                    <!-- <th>Sl.no</th> -->
-                                    <th>Godown</th>
-                                    <th>Quantity</th>
-                                    <th>Rate</th>
-                                    <th>Per</th>
-                                    <th>Amount</th>
-                                    <th>Accept</th>
-                    
-                                </tr>
-                                
-                                <tr>
-                                  <td> 
-                                    <input type="text" id="under" name="under_name" class="form-control" onclick="showformmodal();">
-                                    </td>
-                        
-                                  <td><input type="text" class="w-100 form-control" id="quantity" onblur="passquantity()"> </td>
-                                  <td> <input type="text" class="w-100 form-control" id="rate" onblur="passrate()"></td>
-                                  <td><input type="text" class="w-100 form-control" id="per" onblur="passper()"> </td>
-                                  <td> <input type="text" class="w-100 form-control" id="value" onblur="passvalue()"></td>
-                                  
-                                  <td><a href="javascript:history.go(-1);"><button class="btn btn-info">Accept</button></a></td> 
-                        
-                                </tr>
-                                
-                                
-                            </table>
-                        </div>
-                     </form>
+<div class="modal fade" id="godownmodal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52; color:azure;">
+            <div class="row bg-info text-light p-2 m-0" style=" font-weight:500 ; background-color: rgb(124, 186, 224);color: #000;width: 100%;margin: auto;">
+                <div class="col"><b>Stock Item Allocation</b></div>
+                <div class="col-4" style="font-weight:600 ;text-transform:capitalize;">
+                    {{company.name}}
                 </div>
+                <div class= 'col-2'>
+                    <span class="pull-right clickable close align-items-end" data-effect="fadeOut"data-dismiss="modal">
+                        <i class="fa fa-times" style="color: black;"></i></span>
+                </div> 
+            </div>
+            <div class="modal-header">
+                    <div class="col-10 text-align-center">
+                        <label>Allocation for &nbsp;&nbsp;: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <label id ='stckitem' name = 'stckitem' class="font-weight-bold font-italic"></label><br>
+                        <label>For  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <label id = 'stckamt'></label>
+                    </div>
+            </div>
+            
+            <div class="modal-body">
+                <form class=" 100vw" id = 'modalForm'  method='post' >
+                    {% csrf_token %}
+                    <div class="table-responsive-sm" style="background-color:rgba(0,0,0,0.4);">
+                        <table class="w-100 table text-center" border="1">
+                            <tr>
+                                <th>Godown</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Per</th>
+                                <th>Amount</th>
+                                <!-- <th>Accept</th> -->
+                            </tr>
+                            <tr>
+                                <td> 
+                                <select id="gdnlist"  name="gdnlist" class="form-control rows acc payacc mb-2 p-0" style="width: 150px; border-radius: 5px;">
+                                    {% for i in gd %}
+                                    <option class="opt" id = "opt" value="{{i.name}}" >&nbsp;&nbsp;{{i.name}}</option> 
+                                    {% endfor %}
+                                </select>
+                                </td>
+                                <td><input type="text" class="w-100 form-control" id="m_quantity" > </td>
+                                <td><input type="text" class="w-100 form-control" id="m_rate"></td>
+                                <td><input type="text" class="w-100 form-control" id="m_per"> </td>
+                                <td><input type="text" class="w-100 form-control" id="m_value"></td>
+                                <!-- <td></td>  -->
+                            </tr>
+                        </table>
+                    </div >
+                    <button type="submit" class="btn btn-block text-uppercase text-shadow" data-dismiss="modal" 
+                    style=" width: 200px;background-color: rgba(0,0,0,.4); margin-left: 280px;" id = 'godownSave'>SAVE</button></div>
+                    </form>
             </div>
         </div>
     </div>
-
-                    
-            <div class="form-popup" id="underFormmodal" style="background-color: #213b52" >
-                <form action="" class="form-container1" >
-                    <h6 style="background-color:rgb(17, 169, 240) ;color:white text">List of Godowns</h6>
-                    <a href="{% url 'godown_alt' %}" style="cursor:pointer" class="btn bt btns_prnt" role="button">Create</a>  
-                    <hr>
-                    <div>
-                        <table>
-                            <tr>
-                                <option onclick="setPrimarymodal()" class="btns_prnt">&nbsp;&nbsp;Primary</option>
-                                <option onclick="setmainmodal()" class="btns_prnt">&nbsp;&nbsp;Main Location</option>
-                                
-                                {% for l in gd %}
-                                    <option onclick="setvaluemodal('{{l.name}}','{{l.id}}')" class="btns_prnt">&nbsp;&nbsp;{{l.name}}</option>
-                                {% endfor %}
-                            </tr>
-                        </table>
-                    </div>
-                    <input type="text" name="underhidden" hidden value="{{l.id}}">
-                </form>
-                <button type="button" class="btn cancel close" onclick="closeFormmodal()">X</button>
-            </div>
-        
-            <script>
-                function closeFormmodal() {
-                    document.getElementById("underFormmodal").style.display = "none";
-                }
-                function showformmodal(){
-                    document.getElementById('underFormmodal').style.display= "block";
-                }
-                function setPrimarymodal(){
-                    document.getElementById('under').value= 'Primary';
-                    document.getElementById('underFormmodal').style.visibility= "block";
-                }
-                function setmainmodal(){
-                    document.getElementById('under').value= 'Main Location';
-                    document.getElementById('underFormmodal').style.visibility= "block";
-                }
-                function setvaluemodal(under,underId){
-                    document.getElementById('under').value= under;
-                    document.getElementById('underFormmodal').style.visibility= "block";
-                    document.getElementsByName('underhidden').value= underId;
-                }
-        
-                document.getElementById("value").value = localStorage.getItem("amount");
-        
-                document.getElementById("per").value = localStorage.getItem("units");
-        
-                document.getElementById("dt").value = localStorage.getItem("status");
-        
-                document.getElementById("ft").value = localStorage.getItem("quantity");
-        
-                function checker(){
-                    var result =confirm('Are you sure?');
-                    if (result==false){
-                        event.preventDefault();
-                    }
-                }
-                function passvalue(){
-                    var value=document.getElementById("value").value;
-                    localStorage.setItem("value", value);
-                    var a=localStorage.getItem("value");                         
-                }
-                function passquantity(){
-                    var quantity=document.getElementById("quantity").value;
-                    localStorage.setItem("quantity", quantity);
-                    var qua=localStorage.getItem("quantity");                         
-                }
-                function passrate(){
-                    var rate=document.getElementById("rate").value;
-                    localStorage.setItem("rate", rate);
-                    var qua=localStorage.getItem("rate");                         
-                }
-                function passper(){
-                    var per=document.getElementById("per").value;
-                    localStorage.setItem("per", per);
-                    var qua=localStorage.getItem("per");                         
-                }
-                // list showgroup
-                function showGroup() {
-                    document.getElementById("list-group").style.visibility = "visible";
-                }
-                function hideGroup(valueDIv) {
-                    document.getElementById("group").value=valueDIv;
-                    document.getElementById("list-group").style.visibility = "hidden";
-                }
-                // list Show Category
-                function showCategory() {
-                    document.getElementById("list-categ").style.visibility = "visible";
-                }
-                function hideCateg(valueDIv) {
-                    document.getElementById("categ").value=valueDIv;
-                    document.getElementById("list-categ").style.visibility = "hidden";
-                }
-                // list show Units
-                function showUnits() {
-                    document.getElementById("list-units").style.visibility = "visible";
-                }
-                function hideUnits(valueDIv) {
-                    document.getElementById("unit").value=valueDIv;
-                    document.getElementById("list-units").style.visibility = "hidden";
-                }
-        
-                $('#quantity, #rate').on('input',function(){
-                    var quantity = parseFloat($('#quantity').val()) || 0;
-                    var rate = parseFloat($('#rate').val()) || 0;
-                    $('#value').val(quantity * rate);    
-                });
-            </script>
-        </div>
+    </div>
+  </div>
 </div>
  </div>
-    
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 
     <script>
 
@@ -512,10 +405,7 @@
         function showform1(){
             document.getElementById('underForm1').style.display= "block";
         }
-    </script>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-    <script>
+ 
         function showcrt(){
             var status = document.getElementById("crt");
             var a = status.value;
@@ -628,11 +518,20 @@
             console.log(a);
         }
         function showgodown(){
+
+           
             var status = document.getElementById("gt");
             var a = status.value;
+
+            $("#stckitem").html($("#name").val()) ;
+            $("#stckamt").html(document.getElementById("quantity").value) ;
+            $("#m_per").val(document.getElementById("per1").value) ;
+
             if(a=="Yes"){
 
                 $('#godownmodal').modal('show');
+
+
     
                 // window.location.href="{% url 'stock_accuracy2' %}"
             }
@@ -662,6 +561,46 @@
                 window.location.href="{% url 'stock_accuracy1' %}"
             }
         }
+
+    $('#m_quantity, #m_rate').on('input',function(){
+        var quantity = parseFloat($('#m_quantity').val()) || 0;
+        var rate = parseFloat($('#m_rate').val()) || 0;
+        $('#m_value').val(quantity * rate);    
+    });
+
+    $(document).on("click","#godownSave",function(){
+            console.log($("#gdnlist").val())
+            $.ajax({
+                        type : 'POST',
+                        url:"{% url 'godown_item_alloc' %}",
+                    
+                        data:{
+                            
+                                item : $("#stckitem").text(), 
+                                godown : $("#gdnlist").val(),
+                                quantity : $("#m_quantity").val(),
+                                rate : $("#m_rate").val(),
+                                per : $("#m_per").val(),
+                                value : $("#m_value").val(),
+                                csrfmiddlewaretoken: '{{ csrf_token }}'
+                                
+                        },
+                        
+                        success: function(response) {
+
+                            if(response.message === 'success'){
+                                console.log(response)
+
+                                $('#modalForm')[0].reset();
+                            
+                            }
+                            
+                        },
+                        
+                    });
+    });
+
+        
     </script>
         
 {% endblock %}

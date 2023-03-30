@@ -653,6 +653,7 @@ class CreateGodown(models.Model):
 
 class Godown_Items(models.Model):
     comp=models.ForeignKey(Companies,on_delete=models.CASCADE)
+    item  =models.CharField(max_length=100,null=True,blank=True)
     name=models.CharField(max_length=100)
     quantity=models.CharField(max_length=100,null=True)
     rate=models.CharField(max_length=100,null=True)
@@ -1786,7 +1787,7 @@ class receipt_particulars(models.Model):
     amount =  models.IntegerField(null= True)
 
 
-class bank_transcations(models.Model):
+class bank_transactions(models.Model):
 
     company = models.ForeignKey(Companies,on_delete=models.CASCADE,null=True,blank=True)
 

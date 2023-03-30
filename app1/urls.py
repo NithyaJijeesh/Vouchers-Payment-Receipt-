@@ -840,7 +840,7 @@ urlpatterns = [
     path('receipt_cur_balance_change' , views.receipt_cur_balance_change,name='receipt_cur_balance_change'),       
     path('receipt_pcur_balance_change' , views.receipt_pcur_balance_change,name='receipt_pcur_balance_change'), 
     path('cheque_range' , views.cheque_range, name='cheque_range'), 
-    path('bank_transcation' , views.bank_transcation, name='bank_transcation'), 
+    path('bank_transaction' , views.bank_transaction, name='bank_transaction'), 
 
     #-----------stock summary-----------------
 
@@ -878,5 +878,9 @@ urlpatterns = [
 
     path('listofbankledgers' ,views.listofbankledgers, name= 'listofbankledgers'),
     path('bank_reconciliation/<pk>' ,views.bank_reconciliation, name= 'bank_reconciliation'),
-    path('bank_recon_date',views.bank_recon_date,name = 'bank_recon_date')
+    path('bank_recon_date',views.bank_recon_date,name = 'bank_recon_date'),
+
+#-----stock item creation godown allocation
+
+    path('godown_item_alloc',views.godown_item_alloc,name = 'godown_item_alloc'),
 ]

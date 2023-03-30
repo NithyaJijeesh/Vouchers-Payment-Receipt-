@@ -3568,6 +3568,20 @@ def companycreate(request):
         stockgrp.quantities='No'
         stockgrp.save()
 
+        #--- default godowns
+
+        gd1 = CreateGodown()
+        gd1.comp = n
+        gd1.name='Primary'
+        gd1.alias='Prm'
+        gd1.under_name='Primary'
+        gd1.save()
+        gd = CreateGodown()
+        gd.comp = n
+        gd.name='Main Location'
+        gd.alias='mloc'
+        gd.under_name='Primary'
+        gd.save()
 
         #----fmonth table values--
 
@@ -5433,7 +5447,8 @@ def godown_alt(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-        gd=CreateGodown.objects.all()
+        comp  = Companies.objects.get(id = t_id)
+        gd=CreateGodown.objects.filter(comp = comp)
         return render(request,'godown_alt.html',{'gd':gd,'tally':tally})
     return redirect('/')
 
@@ -5609,7 +5624,6 @@ def unit_com(request):
             return redirect('unit_com')
         return render(request,'unit_compound.html',{'c':c,'tally':tally})
     return redirect('/')
-
 def load_stock_item_creation(request):
     if 't_id' in request.session:
         if request.session.has_key('t_id'):
@@ -5617,12 +5631,13 @@ def load_stock_item_creation(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
+        comp = Companies.objects.get(id = t_id)
         # grp=stockgroupcreation.objects.all()
-        grp=CreateStockGrp.objects.filter(comp=tally)
+        grp=CreateStockGrp.objects.filter(comp=comp)
         unt=unit_compound.objects.all()
         u=unit_simple.objects.all()
-	    # com=Companies.objects.get(id=pk) 
-        return render(request,'stock_item_creation.html',{'grp':grp,'unt':unt,'u':u,'tally':tally})
+        gd=CreateGodown.objects.filter(comp = comp)
+        return render(request,'stock_item_creation.html',{'grp':grp,'unt':unt,'u':u,'tally':tally,'company'  :comp,'gd' :gd})
     return redirect('/')
 
 def stock_items_creation(request):
@@ -5636,6 +5651,7 @@ def stock_items_creation(request):
         unt=unit_compound.objects.all()
         u=unit_simple.objects.all()
         if request.method=='POST':
+
             nm=request.POST['name']
             alias=request.POST['alias']
             under=request.POST['under'].strip()
@@ -5652,9 +5668,9 @@ def stock_items_creation(request):
             per=0 if request.POST['per'] == '' else request.POST['per']
             value= 0 if request.POST['value'] == '' else request.POST['value']
             
-            i = CreateStockGrp.objects.get(name = under,comp = tally)
 
-            
+            i = CreateStockGrp.objects.get(name = under,comp = tally)
+  
             crt=stock_itemcreation(company = tally, name=nm,alias=alias,under= i,units=units,batches=batches,trackdate=trackdate,expirydate=expirydate,typ_sply=typ_sply,
             gst_applicable=gst_applicable,set_alter=set_alter,rate_of_duty=rate_of_duty,quantity=quantity,rate=rate,per=per,value=value)
             crt.save()
@@ -5754,7 +5770,8 @@ def godown_creation(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-        gd=CreateGodown.objects.all()
+        comp = Companies.objects.get(id = t_id)
+        gd=CreateGodown.objects.filter(comp = comp)
 	    # com=Companies.objects.get(id=pk) 
         return render(request,'godown.html',{'gd':gd,'tally':tally})
     return redirect('/')
@@ -5767,7 +5784,8 @@ def godown(request):
         else:
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
-        gd=CreateGodown.objects.all()
+        comp = Companies.objects.get(id = t_id)
+        gd=CreateGodown.objects.filter(comp = comp)
         if request.method=='POST':
             name=request.POST['name']
             alias=request.POST['alias']
@@ -12328,7 +12346,7 @@ def sv_godown(request):
             rate=request.POST['rate']
             per=request.POST['per']
             value=request.POST['value']
-            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company)
+            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company,item = names)
             gdcrt.save()
             
             return redirect('create_items_crd')
@@ -12393,7 +12411,7 @@ def sv_godown_itm(request):
             rate=request.POST['rate']
             per=request.POST['per']
             value=request.POST['value']
-            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company)
+            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company,item = names)
             gdcrt.save()
             
             return redirect('load_stock_item_creation')
@@ -13115,7 +13133,7 @@ def sv_godown_dbt(request):
             rate=request.POST['rate']
             per=request.POST['per']
             value=request.POST['value']
-            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company)
+            gdcrt=Godown_Items(name=names,quantity=quantity,rate=rate,per=per,value=value,comp=company,item = names)
             gdcrt.save()
             
             return redirect('create_items_dbt')
@@ -13767,7 +13785,7 @@ def cheque_range(request):
         cqrange = ledger_chequebook.objects.filter(ledger_name = acname,company = comp ).values() if ledger_chequebook.objects.filter(ledger_name = acname,company = comp).exists() else None
         start = 0 if cqrange is None else cqrange[0]['from_number']  
         end = 0 if cqrange is None else cqrange[0]['to_number'] 
-        q = bank_transcations.objects.filter(bank_account = acname,  transcation_type = 'Cheque',company = comp).values('instno').last()
+        q = bank_transactions.objects.filter(bank_account = acname,  transcation_type = 'Cheque',company = comp).values('instno').last()
         chqnum = 0 if q is None else q['instno']
         print(chqnum)
         if chqnum < end:
@@ -13783,7 +13801,7 @@ def cheque_range(request):
             
         return JsonResponse(data,safe=False)
 
-def bank_transcation(request):
+def bank_transaction(request):
     if 't_id' in request.session:
         if request.session.has_key('t_id'):
             t_id = request.session['t_id']
@@ -13811,13 +13829,13 @@ def bank_transcation(request):
 
             if vouch_type.voucher_type == 'Payment':
 
-                bank_transcations(company = comp ,voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
+                bank_transactions(company = comp ,voucher = vouch_type, pay_voucher = id, pay_particular = partacc , bank_account = bacc ,
                                     transcation_type = t_type,instno = instno,instdate = instdate,
                                     amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname,bank_recon_date = 'No').save()
                 
             elif vouch_type.voucher_type == 'Receipt':
 
-                bank_transcations(company = comp, voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
+                bank_transactions(company = comp, voucher = vouch_type, rec_voucher = id, rec_particular = partacc, bank_account = bacc ,
                                     transcation_type = t_type,instno = instno,instdate = instdate,
                                     amount = amount,acnum = acnum,ifscode = ifsc, bank_name = bname,bank_recon_date = 'No').save()
 
@@ -15386,7 +15404,7 @@ def bank_reconciliation(request, pk):
         comp = Companies.objects.get(id = t_id)
         ledger = tally_ledger.objects.get(company = comp,id = pk)
 
-        bank_tr = bank_transcations.objects.filter(company = comp,bank_account = ledger.name ,bank_recon_date = 'No').values()
+        bank_tr = bank_transactions.objects.filter(company = comp,bank_account = ledger.name ,bank_recon_date = 'No').values()
         ctotal = dtotal = ct = dt =0
         for b in bank_tr:
 
@@ -15436,7 +15454,7 @@ def bank_recon_date(request):
         id = request.POST.get('id')
         print(id)
         num = request.POST.get('num')
-        bank_trn = bank_transcations.objects.get(id = id)
+        bank_trn = bank_transactions.objects.get(id = id)
         if int(num) > 0:
             bank_trn.bank_recon_date = 'Yes'
             bank_trn.save()
@@ -15445,6 +15463,34 @@ def bank_recon_date(request):
 
         
         return HttpResponse({"message": "success"})
+
+#----stock item creation godown correction
+
+def godown_item_alloc(request):
+    
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        comp = Companies.objects.get(id = t_id)
+
+        if request.method == 'POST':
+
+            item = request.POST.get('item')
+            name = request.POST.get('godown')
+            qty = request.POST.get('quantity')
+            rate = request.POST.get('rate')
+            per = request.POST.get('per')
+            value = request.POST.get('value')
+            Godown_Items(comp = comp ,item = item,name = name, quantity = qty, rate = rate,per = per,value = value).save()
+                
+
+            
+            return HttpResponse({"message": "success"})
+
+
+#---- stock query
 
 def liststockviews(request):
     if 't_id' in request.session:
