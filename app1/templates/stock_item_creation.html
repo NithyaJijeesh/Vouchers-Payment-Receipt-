@@ -2,6 +2,9 @@
     {% block body %}
     {% load static %}
     <style>
+
+
+        
         .enter{
             display: flex;
             align-items: center;
@@ -56,6 +59,8 @@
         .hide{
             display: none;
         }
+
+        
     </style>
 
     <div class="m-2">
@@ -281,8 +286,189 @@
                 </table>
             </div>
             <input type="text" name="underhidden1" hidden value="{{un.id}},{{u.id}}">
-        </form>    
+        </form>     
     </div>
+
+    <div class="modal fade" id="godownmodal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: #213b52; color:azure;">
+                <div class="row bg-info text-light p-2 m-0">
+                    <div class="col-md-6"><b>Stock Item Allocation</b></div>
+                    <div class="col-md-6">
+                        {% for i in tally %}
+                        {{i.name}}
+                    {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-header">
+                    <!-- <div class="row container m-0 p-2"> -->
+                        <div class="col-10 text-align-center">
+                        
+                            <label>Allocation for &nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label>
+                            <label id ='stckitem' name = 'stckitem' class="font-weight-bold font-italic"></label><br>
+                            <label>For  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label>
+                            <label id = 'stckamt'></label>
+                        </div>
+                        <div class="col">
+                            <button type="button" class="close align-items-end" data-dismiss="modal" >&times;</button>
+                        </div>
+                        
+                    <!-- </div> -->
+                </div>
+                
+                <div class="modal-body">
+                    <form class=" 100vw" id = 'modalForm' action="" method='post' >
+
+                        {% csrf_token %}
+                        <div class="table-responsive-sm" style="background-color:rgba(0,0,0,0.4);">
+                            <table class="w-100 table text-center" border="1">
+                                <tr>
+                                    <!-- <th>Sl.no</th> -->
+                                    <th>Godown</th>
+                                    <th>Quantity</th>
+                                    <th>Rate</th>
+                                    <th>Per</th>
+                                    <th>Amount</th>
+                                    <th>Accept</th>
+                    
+                                </tr>
+                                
+                                <tr>
+                                  <td> 
+                                    <input type="text" id="under" name="under_name" class="form-control" onclick="showformmodal();">
+                                    </td>
+                        
+                                  <td><input type="text" class="w-100 form-control" id="quantity" onblur="passquantity()"> </td>
+                                  <td> <input type="text" class="w-100 form-control" id="rate" onblur="passrate()"></td>
+                                  <td><input type="text" class="w-100 form-control" id="per" onblur="passper()"> </td>
+                                  <td> <input type="text" class="w-100 form-control" id="value" onblur="passvalue()"></td>
+                                  
+                                  <td><a href="javascript:history.go(-1);"><button class="btn btn-info">Accept</button></a></td> 
+                        
+                                </tr>
+                                
+                                
+                            </table>
+                        </div>
+                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+            <div class="form-popup" id="underFormmodal" style="background-color: #213b52" >
+                <form action="" class="form-container1" >
+                    <h6 style="background-color:rgb(17, 169, 240) ;color:white text">List of Godowns</h6>
+                    <a href="{% url 'godown_alt' %}" style="cursor:pointer" class="btn bt btns_prnt" role="button">Create</a>  
+                    <hr>
+                    <div>
+                        <table>
+                            <tr>
+                                <option onclick="setPrimarymodal()" class="btns_prnt">&nbsp;&nbsp;Primary</option>
+                                <option onclick="setmainmodal()" class="btns_prnt">&nbsp;&nbsp;Main Location</option>
+                                
+                                {% for l in gd %}
+                                    <option onclick="setvaluemodal('{{l.name}}','{{l.id}}')" class="btns_prnt">&nbsp;&nbsp;{{l.name}}</option>
+                                {% endfor %}
+                            </tr>
+                        </table>
+                    </div>
+                    <input type="text" name="underhidden" hidden value="{{l.id}}">
+                </form>
+                <button type="button" class="btn cancel close" onclick="closeFormmodal()">X</button>
+            </div>
+        
+            <script>
+                function closeFormmodal() {
+                    document.getElementById("underFormmodal").style.display = "none";
+                }
+                function showformmodal(){
+                    document.getElementById('underFormmodal').style.display= "block";
+                }
+                function setPrimarymodal(){
+                    document.getElementById('under').value= 'Primary';
+                    document.getElementById('underFormmodal').style.visibility= "block";
+                }
+                function setmainmodal(){
+                    document.getElementById('under').value= 'Main Location';
+                    document.getElementById('underFormmodal').style.visibility= "block";
+                }
+                function setvaluemodal(under,underId){
+                    document.getElementById('under').value= under;
+                    document.getElementById('underFormmodal').style.visibility= "block";
+                    document.getElementsByName('underhidden').value= underId;
+                }
+        
+                document.getElementById("value").value = localStorage.getItem("amount");
+        
+                document.getElementById("per").value = localStorage.getItem("units");
+        
+                document.getElementById("dt").value = localStorage.getItem("status");
+        
+                document.getElementById("ft").value = localStorage.getItem("quantity");
+        
+                function checker(){
+                    var result =confirm('Are you sure?');
+                    if (result==false){
+                        event.preventDefault();
+                    }
+                }
+                function passvalue(){
+                    var value=document.getElementById("value").value;
+                    localStorage.setItem("value", value);
+                    var a=localStorage.getItem("value");                         
+                }
+                function passquantity(){
+                    var quantity=document.getElementById("quantity").value;
+                    localStorage.setItem("quantity", quantity);
+                    var qua=localStorage.getItem("quantity");                         
+                }
+                function passrate(){
+                    var rate=document.getElementById("rate").value;
+                    localStorage.setItem("rate", rate);
+                    var qua=localStorage.getItem("rate");                         
+                }
+                function passper(){
+                    var per=document.getElementById("per").value;
+                    localStorage.setItem("per", per);
+                    var qua=localStorage.getItem("per");                         
+                }
+                // list showgroup
+                function showGroup() {
+                    document.getElementById("list-group").style.visibility = "visible";
+                }
+                function hideGroup(valueDIv) {
+                    document.getElementById("group").value=valueDIv;
+                    document.getElementById("list-group").style.visibility = "hidden";
+                }
+                // list Show Category
+                function showCategory() {
+                    document.getElementById("list-categ").style.visibility = "visible";
+                }
+                function hideCateg(valueDIv) {
+                    document.getElementById("categ").value=valueDIv;
+                    document.getElementById("list-categ").style.visibility = "hidden";
+                }
+                // list show Units
+                function showUnits() {
+                    document.getElementById("list-units").style.visibility = "visible";
+                }
+                function hideUnits(valueDIv) {
+                    document.getElementById("unit").value=valueDIv;
+                    document.getElementById("list-units").style.visibility = "hidden";
+                }
+        
+                $('#quantity, #rate').on('input',function(){
+                    var quantity = parseFloat($('#quantity').val()) || 0;
+                    var rate = parseFloat($('#rate').val()) || 0;
+                    $('#value').val(quantity * rate);    
+                });
+            </script>
+        </div>
+</div>
+ </div>
+    
 
     <script>
 
@@ -445,8 +631,10 @@
             var status = document.getElementById("gt");
             var a = status.value;
             if(a=="Yes"){
+
+                $('#godownmodal').modal('show');
     
-                window.location.href="{% url 'stock_accuracy2' %}"
+                // window.location.href="{% url 'stock_accuracy2' %}"
             }
         }
         function showbats(){

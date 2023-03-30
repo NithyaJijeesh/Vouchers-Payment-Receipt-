@@ -17,28 +17,31 @@
         -webkit-flex-grow: 1;
         flex-grow: 1;
         }
-        .row:hover{
-            background-color: darkorange;
+        #demoos :hover{
+            background-color: rgb(199, 135, 56);
         }
+        
 </style>
 <div class="main-panel">
     <div class="content-wrapper d-flex justify-content-center">
-        <div class="row w-30 " style="background-color: rgba(33,57,77,255);color:#fff;">
-            <div class="row d-flex ms-0 " style="background-color: rgb(103, 175, 220);color:#fff;">
-                <div class="col">List Of Stock</div>
-                <!-- <div class="col"><a href="" class="float-end"><button class="btn-close"></button></a></div> -->
+        <div class="row w-30 " style="background-color: rgba(33,57,77,1);color:aliceblue; width: 600px;">
+            <div class="row d-flex ms-0 " style="background-color: rgb(124, 186, 224);color:#000000;">
+                <div class="col" style="font-weight: 600;">List Of Stock Items</div>
             </div>
             <div class="row ms-1" >
                 <a href="{% url 'load_stock_item_creation' %}"  class="text-end text-white" style="text-decoration: none;">Create</a>
             </div>
-            <!-- <div class="row ms-1 my-2">
-                Primary
-            </div> -->
             {% for i in data %}
-            <div class="row ms-1 my-2">
-                <a href="{% url 'querystockview' i.id %}"  class="text-decoration-none list-unstyled text-white py-1">{{ i.name }}</a>
-            </div>
+                
+                <div class="row ms-1 my-2" id="demoos" style="margin-left: 20px;">
+                    <div class=" col">
+                        <a href="{% url 'querystockview' i.id %}" style="margin-left: 20px;" 
+                           class="text-decoration-none list-unstyled text-white py-1">{{ i.name }}</a>
+                    </div>
+                </div>    
+                
             {% endfor %}
+
         </div>
     </div>
 </div>

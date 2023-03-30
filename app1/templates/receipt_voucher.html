@@ -188,7 +188,7 @@
                         <select id="payacc"  name="acc"  class=" acc rows payacc m-0 p-0" style="width: 150px; border-radius: 5px;">
                             <option class="opt" id = "opt" >&nbsp;&nbsp;Select Account </option> 
                         {% for i in ledg %}
-                            <option class="opt" id = "opt" name ='opt' value="{{i.id}} {{i.name}} {{i.under}}" >&nbsp;&nbsp;{{i.name}}</option>
+                            <option class="opt" id = "opt" name ='opt' value="{{i.id}},{{i.name}},{{i.under}}" >&nbsp;&nbsp;{{i.name}}</option>
                         {% endfor %}
 
                     </select>                      
@@ -564,7 +564,7 @@
 
 
 $("#payacc").change(function () {
-    const accid = $(this).val().split(" ")[0];
+    const accid = $(this).val().split(",")[0];
     //console.log(accid);
     $.ajax({
         url: '{% url "cur_balance" %}',
@@ -717,8 +717,8 @@ function showTransaction(){
     setClosing();
 
 var id = $('#payacc').val();
-var val_name = id. split(" ")[1];
-var val_under = id.split(" ")[2];
+var val_name = id. split(",")[1];
+var val_under = id.split(",")[2];
 var value1,e;
 
 //console.log(id_under);
@@ -797,7 +797,7 @@ $.ajax({
 /*---------------------cheque range display---------------------------*/
 $('#payacc').change(function(){
 
-    accname = $('#payacc').val(). split(" ")[1];
+    accname = $('#payacc').val(). split(",")[1];
     $.ajax({
     url: '{% url "cheque_range" %}',
     data: {

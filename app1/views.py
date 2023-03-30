@@ -5131,8 +5131,11 @@ def listjournalvouchers(request,pk):#ann
 #     return render(request, 'stockgroupanalysis.html',context)
 
 def stockitmecreateview(request):
+
     data=CreateStockGrp.objects.all()
+
     context={'data':data}
+
     return render(request, 'stockitemcreation.html',context) 
 
 def savestockgroup1(request):
@@ -5615,7 +5618,7 @@ def load_stock_item_creation(request):
             return redirect('/')
         tally = Companies.objects.filter(id=t_id)
         # grp=stockgroupcreation.objects.all()
-        grp=CreateStockGrp.objects.filter(comp=t_id)
+        grp=CreateStockGrp.objects.filter(comp=tally)
         unt=unit_compound.objects.all()
         u=unit_simple.objects.all()
 	    # com=Companies.objects.get(id=pk) 
@@ -6217,16 +6220,6 @@ def stock_items(request):
         crt.save()
     return render(request,'stock_items.html',{'cat':cat,'grp':grp,'unt':unt})
 
-def liststockviews(request):
-    if 't_id' in request.session:
-        if request.session.has_key('t_id'):
-            t_id = request.session['t_id']
-        else:
-            return redirect('/')
-        # data=stock_itemcreation.objects.all()
-        data=stock_itemcreation.objects.filter(company=t_id)
-        context={'data':data}
-        return render(request, 'liststock.html',context)
 
 def godown_secondary(request):
     if 't_id' in request.session:
@@ -13448,7 +13441,7 @@ def create_payment_voucher(request):
 
             pid = request.POST.get('idlbl')
             acc = request.POST.get('acc')
-            accnt = acc.split()
+            accnt = acc.split(',')
             date1 = request.POST.get('date1')
             amount=request.POST.get('total')
             nrt = request.POST.get('narrate')
@@ -13559,7 +13552,7 @@ def create_receipt_voucher(request):
 
             rid = request.POST.get('idlbl')
             acc = request.POST.get('acc')
-            accnt = acc.split()
+            accnt = acc.split(',')
             date1 = request.POST.get('date1')
             amount=request.POST.get('total')
             nrt = request.POST.get('narrate')
@@ -15452,3 +15445,16 @@ def bank_recon_date(request):
 
         
         return HttpResponse({"message": "success"})
+
+def liststockviews(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        comp = Companies.objects.get(id = t_id)
+        data=stock_itemcreation.objects.filter(company=comp)
+        context = {
+                    'data':data
+                }
+        return render(request, 'liststock.html',context)

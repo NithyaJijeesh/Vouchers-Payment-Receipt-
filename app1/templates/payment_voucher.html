@@ -189,7 +189,7 @@
                             <select id="payacc"  name="acc"  class=" acc rows payacc m-0 p-0" style="width: 150px; border-radius: 5px;">
                                     <option class="opt" id = "opt" >&nbsp;&nbsp;Select Account </option> 
                                 {% for i in ledg %}
-                                    <option class="opt" id = "opt" name ='opt' value="{{i.id}} {{i.name}} {{i.under}}" >&nbsp;&nbsp;{{i.name}}</option>
+                                    <option class="opt" id = "opt" name ='opt' value="{{i.id}},{{i.name}},{{i.under}}" >&nbsp;&nbsp;{{i.name}}</option>
                                 {% endfor %}
 
                             </select> 
@@ -237,7 +237,6 @@
                                 </td>
                                 <td colspan="2" class="text-right mt-0" style="border: none; ">
                                     <input type="number" class = 'txt amnt' id= 'amnt1' name = 'amnt[]' oninput='calculateTotal();' onchange='showTransaction();'>
-                                    <!-- <input type="number" id = "amntchange1" onchange="setClosing();"> -->
                                     <button type="button" class="butn" id = 'butn1'  onclick="createRow()">
                                         <i class="bi bi-plus-square-fill" style="font-size: 20px;"></i></button>
                                 </td>
@@ -566,7 +565,7 @@
 
 
     $("#payacc").change(function () {
-    const accid = ($(this).val()).split(" ")[0];
+    const accid = ($(this).val()).split(",")[0];
     //console.log(accid);
     $.ajax({
         url: '{% url "cur_balance" %}',
@@ -651,7 +650,7 @@ function setClosing() {
 
     console.log('Set Value')
 
-    const ac = ($('#payacc').val()).split(' ')[0];
+    const ac = ($('#payacc').val()).split(',')[0];
     const curblnc = $('#led').val();
     const curblnct = $('#ledt').val();
     var amount1= $('#amnt'+id).val();
@@ -716,13 +715,16 @@ function closeForm() {
 function showTransaction(){   
 
     setClosing();
-    var id = $('#payacc').val();
-    var val_name = id. split(" ")[1];
-    var val_under = id.split(" ")[2];
-    var value1,e;
 
-    //console.log(id_under);
-    if (val_under === "Bank_Accounts"){
+    var id = $('#payacc').val();
+    var val_name = id. split(",")[1];
+    var val_under = id.split(",")[2];
+    // console.log(id)
+    var value1,e;
+    // console.log(val_name);
+    // console.log(val_under);
+
+    if (val_under.trim() === "Bank_Accounts"){
 
         document.getElementById('trs_type').style.display= "block";
         
@@ -735,7 +737,6 @@ function showTransaction(){
             // $("#amntchange"+i).val(value1);
             document.getElementById('onacc'+i).innerHTML = "On Account";
             document.getElementById('onacc'+i).style.display = "block";
-            console.log(value1);
             part = document.getElementById("payacc" + i).value;
            
         }
