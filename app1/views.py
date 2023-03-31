@@ -6309,7 +6309,7 @@ def salevoucheranalysisview(request,pk):
 
 def querystockview(request,pk):
     data=stock_itemcreation.objects.get(id=pk)
-    ndata=CreateGodown.objects.all()
+    ndata=Godown_Items.objects.filter(item = data.name)
     total_sum = 0
     purchase=purchase_model.objects.filter(itm=data)
     sale=sale_model.objects.filter(itm=data)
@@ -14053,7 +14053,6 @@ def stock_group_summary(request,pk):
 
         startdate = comp.fin_begin
         enddate = date.today
-        
 
         context = {
                 'company' : comp,
@@ -15504,3 +15503,66 @@ def liststockviews(request):
                     'data':data
                 }
         return render(request, 'liststock.html',context)
+
+def stock_query(request,pk):
+     
+     if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        comp = Companies.objects.get(id = t_id)
+        data=stock_itemcreation.objects.get(id=pk,company = comp)
+        ggg = stock_itemcreation.objects.filter(company = comp)
+        gdn = Godown_Items.objects.filter(comp = comp, item = data.name).values()
+        tot = 0
+        for g in gdn:
+            gd = CreateGodown.objects.get(name = g['name'])
+            g['batch'] = gd.under_name
+            tot  += int(g['quantity'])
+            # print(tot)
+            # g['total'] = tot
+
+        vouch = stock_item_voucher.objects.filter(item_id = data.id,company = comp)
+       
+        invouch = Voucher.objects.filter(voucher_type__in = ['Debit_Note','Purchase']).values('voucher_name')
+        outvouch = Voucher.objects.filter(voucher_type__in = ['Credit_Note','Sales']).values('voucher_name')
+
+        invouch_type = []
+        outvouch_type = []
+        for i in invouch:
+            invouch_type.append(i['voucher_name'])
+
+        for i in outvouch:
+            outvouch_type.append(i['voucher_name'])
+
+        in_qty = in_val = out_qty = out_val =0
+        total_qty = int(data.quantity)
+        total_val = int(data.value)
+     
+        if vouch.exists():
+
+            for v in vouch:
+                   
+                in_qty = 0 if v.inwards_qty is None else v.inwards_qty
+                in_val = 0 if v.inwards_val is None else v.inwards_val
+                out_qty = 0 if v.outwards_qty is None else v.outwards_qty
+                out_val = 0 if v.outwards_val is None else v.outwards_val
+                    
+                    
+                total_qty += in_qty - out_qty
+                total_val += in_val - out_val
+
+        context = {
+            'closing_balance' : total_qty,
+            'closing_value' : total_val,
+            'company' : comp,
+            'data' : data,
+            'godown' : gdn,
+            'total' : tot,
+            'ggg':ggg,
+            
+        }
+
+        return render(request,'stock_query.html',context)
+

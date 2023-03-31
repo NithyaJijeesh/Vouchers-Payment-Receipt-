@@ -405,7 +405,6 @@ urlpatterns = [
     path('savestockcategory',views.savestockcategory,name='savestockcategory'),
     path('catgroupsummary',views.catgroupsummary,name='catgroupsummary'),
     path('stock_items',views.stock_items,name='stock_items'),
-    path('liststockviews',views.liststockviews,name='liststockviews'),
     path('godown_secondary',views.godown_secondary,name='godown_secondary'),
     path('singlestockgroupanalysisview/<int:pk>',views.singlestockgroupanalysisview,name='singlestockgroupanalysisview'),
     path('itemmovementanalysisview',views.itemmovementanalysisview,name='itemmovementanalysisview'),
@@ -882,5 +881,10 @@ urlpatterns = [
 
 #-----stock item creation godown allocation
 
+    path('liststockviews',views.liststockviews,name='liststockviews'),
+    path('stock_query/<pk>',views.stock_query,name='stock_query'),
+
     path('godown_item_alloc',views.godown_item_alloc,name = 'godown_item_alloc'),
+
+   
 ]

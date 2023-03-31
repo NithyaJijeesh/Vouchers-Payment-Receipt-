@@ -24,8 +24,16 @@
 
   }
   a{
+   
     text-decoration: none;
     color:#fff;
+    
+  }
+  .sec_hd {
+    font-weight: 300;
+  }
+  .thrd_hd{
+    font-weight: 500;
   }
   
 </style>
@@ -46,58 +54,251 @@
         <div class="table-responsive">
           <table class="table table-bordered table-sm border-dark" style="background-color: rgba(33,57,77,255);color:#fff;">
             <tr>
-              <th colspan="17" rowspan="3" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2) ; border-right:none ;">
-                <div>Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div>Group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div>Closing Balance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div>Cost Price&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div>Costing Method&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div>Standard cost&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
+              <th colspan="10" rowspan="2" class="pb-3" style="font-weight:600 ; border-bottom: solid 0.5px rgba(255, 255, 255, .2) ; border-right:none ;">
+                <div>Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{data.name}}</div>
+                <div>Group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{data.under.name}}</div>
+                <div>Closing Balance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{closing_balance}}&nbsp;{{data.per}}</div>
+                <div>Cost Price&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{data.rate}}/{{data.per}}</div>
+                <div>Costing Method&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;Avg. Cost</div>
+                <div>Standard cost&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{data.rate}}/{{data.per}}</div>
                 
 
               </th>
-              <th colspan="3" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);">                           
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Particluars</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Particluars</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Particluars</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Particluars</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Particluars</div>
+              <th colspan="10" rowspan="2" class="text-left pb-3" style="font-weight:600 ;border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">                           
+                <div>Part No.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;</div>
+                <div>Category&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;Not Applicable</div>
+                <div>Closing value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{closing_value}}</div>
+                <div>Standard selling price&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;{{data.rate}}/{{data.per}}</div>
+                <div>Market valuation method&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;Avg. Price</div>
+              </th>
+            </tr>
+
+            <tbody style="border: solid 0.5px rgba(255, 255, 255, .2);">
+            <tr>
+              <th colspan="10" class="text-center"style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-top: double 0.5px; border-right: double 0.5px">
+                Purchase
+              </th>
+              <th colspan="10" class="text-center"style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-top: double 0.5px;  ">
+                Sales
+              </th>
+            </tr>
+            <tr>
+                <th colspan="3" class="text-left sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                  Last purchased on&nbsp;&nbsp;:
+                </th>
+                <th colspan="2" class="text-center sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                  Bank
+                </th>
+                <th colspan="2" class="text-center sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                  12 Nos @
+                </th>
+                <th colspan="3" class="text-center sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: double 0.5px">
+                  50.00/Nos
+                </th>
+                <th colspan="3" class="text-left sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+                  Last sold on&nbsp;&nbsp;:
+                </th>
+                <th colspan="2" class="text-center  sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+                  Bank
+                </th>
+                <th colspan="2" class="text-center sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+                  1 Nos @
+                </th>
+                <th colspan="3" class="text-center sec_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+                  10.00/Nos
+                </th>
+            </tr>
+            <tr>
+              <th colspan="1" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Date
+              </th>
+              <th colspan="4" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none; text-align: left;">
+                Party Name
+              </th>
+              <th colspan="2" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Quantity
+              </th>
+              <th colspan="1" class="text-center thrd_hd"  style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Rate
+              </th>
+              <th colspan="1" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Disc %
+              </th>
+              <th colspan="1" class="text-center thrd_hd" style="border-right: double 0.5px ;border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; ">
+                Amount
+              </th>
+              <th colspan="1" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+                Date
+              </th>
+              <th colspan="4" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+                Party Name
+              </th>
+              <th colspan="2" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+                Quantity
+              </th>
+              <th colspan="1" class="text-center thrd_hd " style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+                Rate
+              </th>
+              <th colspan="1" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Disc %
+              </th>
+              <th colspan="1" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Amount
+              </th>
+          </tr>
+          <tr>
+            <td colspan="1" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+            </td>
+            <td colspan="4" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none; ">
+            </td>
+            <td colspan="2" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+              
+            </td>
+            <td colspan="1" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+              
+            </td>
+            <td colspan="1" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+            </td>
+            <td colspan="1" class="text-center" style="border-right: double 0.5px; border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; ">
+              
+            </td>
+            <td colspan="1" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+              
+            </td>
+            <td colspan="4" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+              
+            </td>
+            <td colspan="2" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+             
+            </td>
+            <td colspan="1" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+              
+            </td>
+            <td colspan="1" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+              
+            </td>
+            <td colspan="1" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2); border-left:none ;border-right: none;">
+              
+            </td>
+        </tr>
+<tr>
+  <td colspan="20" style="border-left:none ;border-right: none; border-top: double 0.5px; border-bottom: double 0.5px;" class="p-3"></td>
+</tr>
+
+            <tr>
+              <th colspan="10" class="text-center"style="border-right: double 0.5px; border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; ">
+                Godown/Batch Details
+              </th>
+              <th colspan="10" class="text-center"style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; ">
+                Items of Same Category
               </th>
             </tr>
 
             <tr>
-              <th colspan="3" class="text-center" >                           
-                <div>Closing Balance</div>
-                <tr class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);  ">
-                  <th style="border-right: none;">Quantity</th>
-                  <th style="border-right: none; border-left: none;" >Rate </th>
-                  <th style="border-left: none;"> Value</th>
-                </tr>
-              </th>   
+              <th colspan="4" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Godown
+              </th>
+              <th colspan="3" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Batch
+              </th>
+              <th colspan="3" class="text-center thrd_hd" style="border-right: double 0.5px; border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+                Quantity
+              </th>
+              
+              <th colspan="3" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+                Item Name
+              </th>
+              <th colspan="2" class="text-center thrd_hd" style=" border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+                Quantity
+              </th>
+              <th colspan="2" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+                Cost
+              </th>
+              <th colspan="3" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+                Sale Price
+              </th>
             </tr>
-            <tbody style="border: solid 0.5px rgba(255, 255, 255, .2);">
-              {% for g in group %}        
-                <tr>
-                  <td colspan="17" style="border-right: none; border-left: none;">
-                    <a href="" >{{g.name}}</a>
-                  </td>
-                  <td style="border-right: none; border-left: none;"></td>
-                  <td style="border-right: none; border-left: none;"></td>
-                  <td class="text-center" style="border-right: none; border-left: none;">{{g.total}}</td>
-                </tr>
-              {% endfor %}
 
-            </tbody>
-            <tfoot style="border-top:solid 0.5px rgba(255, 255, 255, .2) ;">
+
+            
+            <tr>
+              <td colspan="10">
+              
+              <table>
+                {% for g in godown %}
               <tr>
-                <td style="border-right: none; border-left: none;" colspan="17" class="text-center" style="font-weight: bold;">
-                  Grand Total
-                </td>
-                <td style="border-right: none; border-left: none;"></td>
-                <td style="border-right: none; border-left: none;"></td>
-                <td class="text-center" style="border-right: none; border-left: none;">{{value}}</td>
+     
+              <td colspan="4" class="text-left" style="border-left:none ;border-right: none;">
+                {{g.name}}
+              </td>
+              <td colspan="3" class="text-center" style="border-left:none ;border-right: none;">
+                {{g.batch}}
+              </td>
+              <td colspan="3" class="text-center" style="border-left:none; border-right: double 0.5px;">
+                {{g.quantity}} {{data.per}}
+              </td>
+              <!-- <td colspan="3" class="text-left thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+              </td>
+              <td colspan="2" class="text-center thrd_hd" style=" border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+              </td>
+              <td colspan="2" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+              </td>
+              <td colspan="3" class="text-center thrd_hd" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+              </td> -->
+              
               </tr>
-            </tfoot>
+              {% endfor %}
+              </table>
+              
+              
+              </td>
+              <td colspan="10">
+              
+              <table>
+                {%for fg in ggg%}
+              <tr>
+              <th colspan="5" class="text-left" style="border-left:none ; border-right: none;">
+                {{fg.name}}
+              </th>
+              <th colspan="5" class="text-center" style="border-left:none ; border-right: none;">
+                {{fg.item}}
+              </th>
+              <th colspan="5" class="text-center" style="border-left:none; border-right: none;">
+                
+              </th>
+              <th colspan="5" class="text-center" style="border-left:none ;">
+                
+              </th>
+              </tr>
+              {% endfor %}
+              </table>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                
+              </td>
+              <td colspan="3" class="text-center" style=" border-top: solid 0.5px  rgba(255, 255, 255, .2);  border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;border-right: none;">
+                Total:
+              </td>
+              <td colspan="3" class="text-center" style="border-right: double 0.5px; border-top: solid 0.5px  rgba(255, 255, 255, .2); border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+                <u style="text-decoration: double underline 0.5px;">{{total}} {{data.per}}</u>
+              </td>
+              
+              <td colspan="3" class="text-left" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-right: none;">
+                
+              </td>
+              <td colspan="2" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ; border-right: none;">
+                
+              </td>
+              <td colspan="2" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none; border-right: none;">
+                
+              </td>
+              <td colspan="3" class="text-center" style="border-bottom: solid 0.5px rgba(255, 255, 255, .2);border-left:none ;">
+                
+              </td>
+            </tr>
+            </tbody>
           </table>
         </div>
       </div>
