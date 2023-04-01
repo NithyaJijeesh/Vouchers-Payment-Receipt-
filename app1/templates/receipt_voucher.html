@@ -654,7 +654,7 @@ function setClosing(){
 
     console.log('Set Value');
 
-    const ac = $('#payacc').val().split(' ')[0];
+    const ac = $('#payacc').val().split(',')[0];
     const curblnc = $('#led').val();
     const curblnct = $('#ledt').val();
     var amount = $('#amnt'+id).val();
@@ -743,6 +743,7 @@ if (val_under === "Bank_Accounts"){
 else{
     document.getElementById("trs_type").style.display = "hide";
 }
+
 /*-----others----*/
 $("#othacc").html(val_name);
 $("#tramt").html(value1);
@@ -756,7 +757,7 @@ $("#efacc").html(val_name);
 $("#efamt").html(value1);
 $("#efamnt").html(value1);
 $('#partid').val(part);
-console.log($('#partid').val());
+// console.log($('#partid').val());
 $("#trlist").click(function(e){
     trvalue= e.target.innerHTML;
     $("#t_type").html(trvalue);

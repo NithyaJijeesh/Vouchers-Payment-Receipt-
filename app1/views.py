@@ -15513,7 +15513,9 @@ def stock_query(request,pk):
             return redirect('/')
         comp = Companies.objects.get(id = t_id)
         data=stock_itemcreation.objects.get(id=pk,company = comp)
-        ggg = stock_itemcreation.objects.filter(company = comp)
+        gr= CreateStockGrp.objects.get(comp = comp,id = data.under.id)
+        categ= stock_itemcreation.objects.filter(company = comp,under = gr)
+
         gdn = Godown_Items.objects.filter(comp = comp, item = data.name).values()
         tot = 0
         for g in gdn:
@@ -15560,7 +15562,7 @@ def stock_query(request,pk):
             'data' : data,
             'godown' : gdn,
             'total' : tot,
-            'ggg':ggg,
+            'category' : categ,
             
         }
 
