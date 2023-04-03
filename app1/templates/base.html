@@ -606,12 +606,19 @@
                             <div class="menu-title">Banking</div>
                         </a>
                         <ul>
-                            <li><a href="listofbankledgers"><i class="bx bx-right-arrow-alt"></i>Bank Reconciliation</a>
-                             
+                            <li><a href="#"><i class="bx bx-right-arrow-alt"></i>Cheque</a>
+                                <ul>
+                                    
+                                </ul>
+                            </li>
+                            <li><a href="#"><i class="bx bx-right-arrow-alt"></i>Statements</a>
+                                <ul>
+                                    <li><a href="{% url 'listofbank' %}"><i class=" bx bx-caret-right"></i>Deposit Slip</a></li>
+                                    <li><a href="{% url 'listofbankledgers' %}"><i class=" bx bx-caret-right"></i>Bank Reconciliation</a></li>
+                                    
+                                </ul>
                             </li>
 
-                           
-                          
                         </ul>
 
                     </li>

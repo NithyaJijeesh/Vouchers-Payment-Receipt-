@@ -885,5 +885,10 @@ urlpatterns = [
     path('stock_query/<pk>',views.stock_query,name='stock_query'),
     path('godown_item_alloc',views.godown_item_alloc,name = 'godown_item_alloc'),
 
-   
+#-------Deposit slip-----
+
+    path('listofbank',views.listofbank,name = 'listofbank'),
+    path('deposit_slip/<pk>',views.deposit_slip,name = 'deposit_slip'),
+
+
 ]

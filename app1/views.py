@@ -15568,3 +15568,57 @@ def stock_query(request,pk):
 
         return render(request,'stock_query.html',context)
 
+
+#--------------Deposit Slip------
+
+def listofbank(request):
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+
+        data=CreateStockGrp.objects.filter(comp = t_id)
+
+        ledg = tally_ledger.objects.filter(company = t_id, under__in = ['Bank_Accounts','Bank_OCC_AC','Bank_OD_A/c'])
+
+        context={
+                    'data':data, 
+                    'ledg' : ledg,
+                }
+
+        return render(request,'list_bank.html',context)
+
+def deposit_slip(request, pk):
+
+    if 't_id' in request.session:
+        if request.session.has_key('t_id'):
+            t_id = request.session['t_id']
+        else:
+            return redirect('/')
+        
+        comp = Companies.objects.get(id = t_id)
+        ledger = tally_ledger.objects.get(company = comp,id = pk)
+        vouch_type = Voucher.objects.filter(company = comp, voucher_type__in = ('Receipt' , 'Contra'))
+        bank_tr = bank_transactions.objects.filter(company = comp,bank_account = ledger.name,transcation_type__in = ('Cheque','Electronic Cheque','Electronic DD/PO'),voucher__in = vouch_type ).values()
+        total = 0
+        for b in bank_tr:
+            print(b)
+            rec_vouch = receipt_voucher.objects.get(rid = b['rec_voucher'])
+            rec_part = receipt_particulars.objects.get(particular_id = b['rec_particular'],rec_voucher = rec_vouch)   
+            b['particular'] = rec_part.particular
+            b['date'] = rec_part.rec_voucher.date
+            total += b['amount']
+           
+            
+        context = {
+                    'company' : comp,
+                    'ledger' : ledger,
+                    'bank' : bank_tr,
+                    'total': total,
+                    'particular' : rec_part,
+                    
+                 }
+        return render(request,'deposit_slip.html',context)
+
+
